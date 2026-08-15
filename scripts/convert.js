@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * rabbitQ-skill-lark-xhs
+ * rabbitQ-lark2xhs
  *
  * 小兔Q彬 · 飞书云文档 Markdown + 附件 → 可编辑小红书 3:4 图文 Studio
  *
@@ -20,8 +20,8 @@ const childProcess = require("child_process");
 const { pathToFileURL } = require("url");
 const cheerio = require("cheerio");
 
-const VERSION = "0.9.25";
-const HEADING_LEVEL2_MARGIN_PX = 40;
+const VERSION = "0.9.26";
+const HEADING_LEVEL2_MARGIN_PX = 33;
 const HEADING_LEVEL2_PAGE_START_MARGIN_PX = 0;
 const DEFAULT_BG_THEME = "white";
 const DEFAULT_ACCENT_THEME = "blue";
@@ -34,12 +34,13 @@ const DEFAULT_HEIGHT = 1440;
 const BODY_PAD_X = 72;
 const BODY_PAD_TOP = 72;
 const BODY_PAD_BOTTOM = 72;
-const BODY_PARAGRAPH_GAP = 40;
-const BODY_LINE_GAP = 22;
-const BODY_LIST_ITEM_GAP = 20;
+const BODY_FONT_SIZE = 42;
+const BODY_PARAGRAPH_GAP = 33;
+const BODY_LINE_GAP = 27;
+const BODY_LIST_ITEM_GAP = 18;
 
 function printUsage() {
-  console.log(`rabbitQ-skill-lark-xhs
+  console.log(`rabbitQ-lark2xhs
 
 Usage:
   node scripts/convert.js <markdown-file-or-package-dir-or-zip> [options]
@@ -922,7 +923,7 @@ function studioHtmlV2(payload, libs) {
     bodyContentHeight,
     bodyFontSize,
     bodyLineHeight,
-    bodyCharsPerLine = 21,
+    bodyCharsPerLine = 23,
     headingNumberSize,
     headingTitleSize,
     coverImageSrc,
@@ -935,16 +936,18 @@ function studioHtmlV2(payload, libs) {
   const coverTailPadTop = Math.max(20, Math.round(bodyPadTop * 0.32));
   const noCoverBodyGap = Math.max(1, Math.round(height * 40 / DEFAULT_HEIGHT));
   const coverTitleSize = Math.round(width * 0.112);
-  const coverSubtitleSize = Math.max(28, Math.round(width * 34 / DEFAULT_WIDTH));
+  const coverSubtitleSize = Math.max(31, Math.round(width * 37 / DEFAULT_WIDTH));
+  const coverSubtitleBarWidth = Math.max(6, Math.round(width * 7 / DEFAULT_WIDTH));
   const imageFrameHeight = Math.round(height * 0.31);
   const calloutBorder = Math.max(5, Math.round(width * 0.006));
-  const supportBodySize = Math.max(30, Math.round(36 * width / DEFAULT_WIDTH));
-  const quoteBodySize = Math.max(28, Math.round(34 * width / DEFAULT_WIDTH));
-  const calloutLabelSize = Math.max(22, Math.round(bodyFontSize - 10));
+  const supportBodySize = Math.max(30, Math.round(bodyFontSize));
+  const cardBodySize = Math.max(30, Math.round(bodyFontSize - 2 * width / DEFAULT_WIDTH));
+  const quoteBodySize = Math.max(28, Math.round(bodyFontSize - 2 * width / DEFAULT_WIDTH));
+  const calloutLabelSize = Math.max(24, Math.round(30 * width / DEFAULT_WIDTH));
   const bodyParagraphGap = Math.max(20, Math.round(BODY_PARAGRAPH_GAP * width / DEFAULT_WIDTH));
   const headingNumberSlotWidth = Math.round(headingNumberSize * 1.48);
   const headingNumberTitleGap = Math.max(16, Math.round(width * 0.017));
-  const codeBodySize = Math.max(28, Math.round(32 * width / DEFAULT_WIDTH));
+  const codeBodySize = Math.max(32, Math.round(38 * width / DEFAULT_WIDTH));
   const imageGridGap = Math.round(width * 0.018);
   const songtiFont = `"Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif`;
 
@@ -966,10 +969,11 @@ function studioHtmlV2(payload, libs) {
       --body-line: ${bodyLineHeight};
       --body-line-px: ${Math.round(bodyFontSize * bodyLineHeight * 100) / 100}px;
       --body-paragraph-gap: ${bodyParagraphGap}px;
+      --body-letter-spacing: 0.5px;
       --body-list-item-gap: ${Math.round(BODY_LIST_ITEM_GAP * width / DEFAULT_WIDTH)}px;
-      --body-regular-weight: 720;
-      --body-bold-weight: 720;
-      --body-unbold-weight: 550;
+      --body-regular-weight: 500;
+      --body-bold-weight: 700;
+      --body-unbold-weight: 500;
       --body-text-width: 100%;
       --cover-title-size: ${coverTitleSize}px;
       --cover-subtitle-size: ${coverSubtitleSize}px;
@@ -1027,10 +1031,10 @@ function studioHtmlV2(payload, libs) {
     .xhs-cover-card.no-cover-image .cover-text { top: 0; height: var(--xhs-no-cover-subtitle-bottom, ${noCoverSplitY}px); padding-bottom: 0; z-index: 2; justify-content: flex-start; }
     .xhs-cover-card.full-cover-image .cover-media { height: 100%; }
     .xhs-cover-card.full-cover-image .cover-text { display: none; }
-    .cover-subtitle { flex: 0 0 auto; display: block; position: relative; box-sizing: border-box; width: 100%; max-width: none; max-height: calc(1.62em * 2); overflow: hidden; padding-left: ${Math.max(5, Math.round(width * 0.006)) + Math.round(width * 0.022)}px; color: #111; font-family: var(--xhs-font); font-size: var(--cover-subtitle-size); line-height: 1.62; font-weight: 650; white-space: pre-line; word-break: normal; overflow-wrap: anywhere; outline: none; letter-spacing: 2px; font-kerning: normal; text-rendering: geometricPrecision; }
+    .cover-subtitle { flex: 0 0 auto; display: block; position: relative; box-sizing: border-box; width: 100%; max-width: none; max-height: calc(1.62em * 2); overflow: hidden; padding-left: ${coverSubtitleBarWidth + Math.round(width * 0.022)}px; color: #111; font-family: var(--xhs-font); font-size: var(--cover-subtitle-size); line-height: 1.62; font-weight: 650; white-space: pre-line; word-break: normal; overflow-wrap: anywhere; outline: none; letter-spacing: 2px; font-kerning: normal; text-rendering: geometricPrecision; }
     .cover-subtitle * { font-size: inherit !important; line-height: inherit !important; letter-spacing: inherit; }
     .cover-subtitle strong, .cover-subtitle b, .cover-subtitle .xhs-cover-bold { font-weight: 900 !important; }
-    .cover-subtitle::before { content: ""; position: absolute; left: 0; top: 50%; width: ${Math.max(5, Math.round(width * 0.006))}px; height: 1.08em; transform: translateY(-50%); background: var(--xhs-accent); border-radius: 999px; pointer-events: none; }
+    .cover-subtitle::before { content: ""; position: absolute; left: 0; top: 50%; width: ${coverSubtitleBarWidth}px; height: 1.08em; transform: translateY(-50%); background: var(--xhs-accent); border-radius: 999px; pointer-events: none; }
     .cover-subtitle.xhs-two-lines::before { height: 1.62em; }
     .cover-subtitle:empty::after { content: attr(data-placeholder); color: #8f948d; letter-spacing: 0; pointer-events: none; }
     .xhs-page-break { height: 0; margin: 0; padding: 0; border: 0; overflow: hidden; visibility: hidden; break-inside: avoid; page-break-inside: avoid; }
@@ -1040,7 +1044,7 @@ function studioHtmlV2(payload, libs) {
     .xhs-cover-card:not(.no-cover-image) .xhs-cover-tail-frame { display: none; }
     .xhs-block { width: 100%; }
     .xhs-body-frame > div { min-height: 1.9em; color: #111; font-size: var(--body-font); line-height: var(--body-line); word-break: normal; overflow-wrap: break-word; }
-    .xhs-p { margin: 0 0 var(--body-paragraph-gap); max-width: var(--body-text-width); color: #111; font-size: var(--body-font) !important; line-height: var(--body-line); font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: 0 !important; overflow: hidden; }
+    .xhs-p { margin: 0 0 var(--body-paragraph-gap); max-width: var(--body-text-width); color: #111; font-size: var(--body-font) !important; line-height: var(--body-line); font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: var(--body-letter-spacing) !important; overflow: hidden; }
     .xhs-manual-blank { min-height: calc(var(--body-font) * var(--body-line)); }
     .xhs-body-frame > .xhs-page-start.xhs-manual-blank,
     .xhs-body-frame > .xhs-page-end.xhs-manual-blank:not(.xhs-boundary-blank) { min-height: 0 !important; height: 0 !important; margin: 0 !important; padding: 0 !important; overflow: hidden !important; }
@@ -1063,7 +1067,7 @@ function studioHtmlV2(payload, libs) {
     .xhs-block-drag-handle:hover { opacity: 1; color: #6b7280; background: #f3f4f6; }
     .xhs-block-drag-handle:active { cursor: grabbing; color: var(--xhs-accent-strong); background: #edf2fb; }
     .xhs-block-drag-handle-dot { width: 2.5px; height: 2.5px; border-radius: 50%; background: currentColor; pointer-events: none; }
-    .xhs-p span, .xhs-callout span, .xhs-quote span, .xhs-rich span, .xhs-list-line span, .xhs-table span { font-family: inherit !important; font-size: inherit !important; line-height: inherit !important; font-weight: inherit !important; letter-spacing: 0 !important; }
+    .xhs-p span, .xhs-callout span, .xhs-quote span, .xhs-rich span, .xhs-list-line span, .xhs-table span { font-family: inherit !important; font-size: inherit !important; line-height: inherit !important; font-weight: inherit !important; letter-spacing: inherit !important; }
     .xhs-card code { font-family: inherit !important; font-size: inherit !important; font-weight: inherit; font-style: inherit; line-height: inherit !important; letter-spacing: inherit !important; color: inherit; background: none; }
     .xhs-heading { margin: 0 0 ${Math.round(width * 0.03) + 2}px; padding: 0 0 ${Math.round(width * 0.014)}px; border-bottom: 1px solid var(--xhs-underline-line, var(--xhs-underline)); display: grid; grid-template-columns: ${headingNumberSlotWidth}px minmax(0, 1fr); column-gap: ${headingNumberTitleGap}px; align-items: center; font-family: var(--xhs-font); overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
     .xhs-heading[contenteditable="false"] { outline: none; }
@@ -1075,19 +1079,19 @@ function studioHtmlV2(payload, libs) {
     .xhs-heading[data-level="2"] .xhs-heading-title { display: inline-flex; align-items: center; box-sizing: border-box; min-height: var(--body-line-px); flex: none; margin-left: 0; color: var(--xhs-accent-strong); font-size: var(--body-font); line-height: var(--body-line-px); font-weight: var(--body-bold-weight); background: none; padding: 0 1px; border-bottom: 2px solid var(--xhs-underline-line, var(--xhs-underline)); border-radius: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
     .xhs-callout { margin: 0 0 var(--body-paragraph-gap); padding: 0.72em 0.84em 0.74em; background: var(--xhs-accent-pale); border-left: ${calloutBorder}px solid var(--xhs-accent); border-radius: 0 10px 10px 0; font-family: var(--xhs-font); font-size: var(--body-font); line-height: var(--body-line); overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
     .xhs-callout-label { margin: 0 0 0.42em; color: var(--xhs-accent-strong); font-size: ${calloutLabelSize}px; line-height: 1.2; font-weight: var(--body-bold-weight); }
-    .xhs-callout-body { max-width: var(--body-text-width); color: #111; font-size: ${supportBodySize}px; line-height: var(--body-line); font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: 0; overflow: hidden; }
+    .xhs-callout-body { max-width: var(--body-text-width); color: #111; font-size: ${cardBodySize}px; line-height: var(--body-line); font-weight: var(--body-bold-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: var(--body-letter-spacing); overflow: hidden; }
     .xhs-callout.xhs-card-frame { border-left: 0; border: 1.5px solid var(--xhs-underline); border-radius: 8px; background: var(--xhs-accent-pale); padding: 0.78em 0.9em; }
     .xhs-callout.xhs-card-frame .xhs-callout-label { color: var(--xhs-accent-strong); }
-    .xhs-callout.xhs-card-frame .xhs-callout-body { color: #000; font-weight: var(--body-regular-weight); }
-    .xhs-quote { margin: 0 0 var(--body-paragraph-gap); max-width: var(--body-text-width); padding: 0.16em 0 0.16em 0.72em; border-left: ${Math.max(4, Math.round(width * 0.005))}px solid #9a9a9a; background: transparent; color: #777; font-size: ${quoteBodySize}px; line-height: var(--body-line); font-style: normal; font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: 0; overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
+    .xhs-callout.xhs-card-frame .xhs-callout-body { color: #000; font-weight: var(--body-bold-weight); }
+    .xhs-quote { margin: 0 0 var(--body-paragraph-gap); max-width: var(--body-text-width); padding: 0.16em 0 0.16em 0.72em; border-left: ${Math.max(4, Math.round(width * 0.005))}px solid #9a9a9a; background: transparent; color: #777; font-size: ${quoteBodySize}px; line-height: var(--body-line); font-style: normal; font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: var(--body-letter-spacing); overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
     .xhs-code-block { margin: 0 0 var(--body-paragraph-gap); width: 100%; max-width: var(--body-text-width); overflow: hidden; border: 1px solid #343842; border-radius: 14px; background: #17191f; color: #f4f6fb; box-shadow: 0 10px 26px rgba(16, 20, 28, .16); break-inside: avoid; page-break-inside: avoid; }
-    .xhs-code-toolbar { height: ${Math.max(42, Math.round(width * 0.043))}px; padding: 0 ${Math.round(width * 0.017)}px; display: flex; align-items: center; gap: ${Math.max(8, Math.round(width * 0.009))}px; background: #262934; border-bottom: 1px solid rgba(255,255,255,.08); user-select: none; }
+    .xhs-code-toolbar { height: ${Math.max(48, Math.round(width * 0.048))}px; padding: 0 ${Math.round(width * 0.020)}px; display: flex; align-items: center; gap: ${Math.max(8, Math.round(width * 0.009))}px; background: #262934; border-bottom: 1px solid rgba(255,255,255,.08); user-select: none; }
     .xhs-code-dot { width: ${Math.max(10, Math.round(width * 0.011))}px; height: ${Math.max(10, Math.round(width * 0.011))}px; border-radius: 50%; flex: 0 0 auto; }
     .xhs-code-dot.red { background: #ff5f57; }
     .xhs-code-dot.yellow { background: #febc2e; }
     .xhs-code-dot.green { background: #28c840; }
-    .xhs-code-language { margin-left: auto; color: #aeb4c2; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: ${Math.max(16, Math.round(width * 0.018))}px; line-height: 1; font-weight: 650; }
-    .xhs-code-content { margin: 0; padding: ${Math.round(width * 0.021)}px ${Math.round(width * 0.023)}px ${Math.round(width * 0.024)}px; min-height: 1.6em; outline: none; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; tab-size: 2; color: #f4f6fb; font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace !important; font-size: ${codeBodySize}px !important; line-height: 1.55 !important; font-weight: 650; letter-spacing: 0 !important; }
+    .xhs-code-language { margin-left: auto; color: #aeb4c2; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; font-size: ${Math.max(18, Math.round(width * 0.020))}px; line-height: 1; font-weight: 650; }
+    .xhs-code-content { margin: 0; padding: ${Math.round(width * 0.025)}px ${Math.round(width * 0.028)}px ${Math.round(width * 0.029)}px; min-height: 1.6em; outline: none; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; tab-size: 2; color: #f4f6fb; font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", monospace !important; font-size: ${codeBodySize}px !important; line-height: 1.55 !important; font-weight: 650; letter-spacing: 0 !important; }
     .xhs-code-content code { color: inherit; font-family: inherit !important; font-size: inherit !important; line-height: inherit !important; font-weight: inherit; white-space: inherit; }
     .xhs-image-block { margin: 0 auto var(--body-paragraph-gap); width: 100%; max-width: 100%; text-align: center; break-inside: avoid; page-break-inside: avoid; }
     .xhs-image-frame { position: relative; width: 100%; min-height: 80px; height: ${imageFrameHeight}px; overflow: hidden; resize: none; border: 1px solid #e1e8df; border-radius: 0; background: #fff; cursor: grab; touch-action: none; }
@@ -1108,24 +1112,25 @@ function studioHtmlV2(payload, libs) {
     .selected-flow-block { outline: 4px solid rgba(37, 99, 235, .58); outline-offset: 4px; }
     .xhs-drop-indicator { position: absolute; left: var(--body-pad-x); width: var(--body-content-width); height: 2px; background: var(--xhs-accent); border-radius: 999px; pointer-events: none; z-index: 220; box-shadow: 0 0 0 1px rgba(255,255,255,.92); }
     .xhs-overview-drop-indicator { position: fixed; height: 2px; background: var(--xhs-accent); border-radius: 999px; pointer-events: none; z-index: 680; box-shadow: 0 0 0 1px rgba(255,255,255,.92); }
-    .xhs-list-line { display: flex; flex-direction: row; align-items: flex-start; gap: 0.25em; margin: 0 0 var(--body-list-item-gap); max-width: var(--body-text-width); color: #111; font-size: var(--body-font); line-height: var(--body-line); font-weight: var(--body-regular-weight); overflow: visible; }
+    .xhs-list-line { display: flex; flex-direction: row; align-items: flex-start; gap: ${Math.round(9 * width / DEFAULT_WIDTH)}px; margin: 0 0 var(--body-list-item-gap); max-width: var(--body-text-width); color: #111; font-size: var(--body-font); line-height: var(--body-line); font-weight: var(--body-regular-weight); overflow: visible; }
     .xhs-list-line:not(:has(+ .xhs-list-line)) { margin-bottom: var(--body-paragraph-gap); }
     .xhs-list-line .xhs-list-marker { flex: 0 0 0.72em; width: 0.72em; flex-shrink: 0; user-select: none; pointer-events: none; line-height: inherit; font-size: 0.8em !important; }
     .xhs-list-line .xhs-list-marker-ordered { flex-basis: 1.16em; width: 1.16em; height: var(--body-line-px); align-self: flex-start; color: var(--xhs-accent-strong); font-weight: var(--body-bold-weight); text-align: center; white-space: nowrap; display: flex; align-items: center; justify-content: center; font-size: 1em !important; line-height: 1 !important; }
     .xhs-list-marker-dot::before { content: ''; display: inline-block; width: 0.42em; height: 0.42em; margin-top: 0.58em; border-radius: 50%; background: var(--xhs-accent); }
-    .xhs-list-body { flex: 1 1 auto; min-width: 0; max-width: var(--body-text-width); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: 0; }
-    .xhs-list-body span { font-family: inherit !important; font-size: inherit !important; line-height: inherit !important; letter-spacing: 0 !important; }
+    .xhs-list-body { flex: 1 1 auto; min-width: 0; max-width: var(--body-text-width); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: var(--body-letter-spacing); }
+    .xhs-list-body span { font-family: inherit !important; font-size: inherit !important; line-height: inherit !important; letter-spacing: inherit !important; }
     .xhs-table-block { margin: 0 0 var(--body-paragraph-gap); width: 100%; max-width: var(--body-text-width); overflow: hidden; font-family: var(--xhs-font); break-inside: avoid; page-break-inside: avoid; }
     .xhs-table { width: 100%; border-collapse: collapse; table-layout: fixed; background: #fff; color: #111; font-size: ${supportBodySize}px; line-height: 1.48; }
-    .xhs-table th, .xhs-table td { padding: 0.58em 0.62em; text-align: left; vertical-align: top; word-break: normal; overflow-wrap: anywhere; letter-spacing: 0; }
+    .xhs-table th, .xhs-table td { padding: 0.58em 0.62em; text-align: left; vertical-align: top; word-break: normal; overflow-wrap: anywhere; letter-spacing: var(--body-letter-spacing); }
     .xhs-table thead th { background: var(--xhs-accent-pale); color: var(--xhs-accent-strong); font-weight: var(--body-bold-weight); border-top: 1.5px solid var(--xhs-accent); border-bottom: 1.5px solid var(--xhs-accent); }
     .xhs-table tbody td { background: #fff; border-bottom: 1px dashed #d5ded3; font-weight: var(--body-regular-weight); }
     .xhs-table tbody tr:last-child td { border-bottom: 2px solid var(--xhs-underline); }
     .xhs-table strong, .xhs-table b { font-weight: var(--body-bold-weight); }
     .xhs-table em { font-style: italic; }
-    .xhs-rich { margin: 0 0 var(--body-paragraph-gap); max-width: var(--body-text-width); color: #111; font-size: var(--body-font); line-height: var(--body-line); font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: 0; overflow: hidden; }
+    .xhs-rich { margin: 0 0 var(--body-paragraph-gap); max-width: var(--body-text-width); color: #111; font-size: var(--body-font); line-height: var(--body-line); font-weight: var(--body-regular-weight); text-align: left; text-align-last: left; text-justify: auto; word-break: normal; overflow-wrap: break-word; letter-spacing: var(--body-letter-spacing); overflow: hidden; }
     .xhs-p strong, .xhs-p b, .xhs-rich strong, .xhs-rich b, .xhs-list-body strong, .xhs-list-body b, .xhs-callout-body strong, .xhs-callout-body b, .xhs-quote strong, .xhs-quote b { font-weight: var(--body-bold-weight) !important; }
     .xhs-card .xhs-text-regular, .xhs-card .xhs-text-regular * { font-weight: var(--body-unbold-weight) !important; }
+    .xhs-card .xhs-text-bold, .xhs-card .xhs-text-bold * { font-weight: var(--body-bold-weight) !important; }
     .xhs-green-text { color: var(--xhs-accent-strong); font-weight: inherit; }
     .xhs-green-underline { font-weight: inherit; background: linear-gradient(to top, var(--xhs-accent-soft) 0 46%, transparent 46% 100%); padding:0 2px; border-bottom:1px solid var(--xhs-underline-line, var(--xhs-underline)); border-radius:2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
     .xhs-split-head { margin-bottom: 0 !important; }
@@ -1144,6 +1149,10 @@ function studioHtmlV2(payload, libs) {
     .tool-label { display: grid; gap: 5px; color: #4b5563; font-size: 12px; font-weight: 750; }
     .tool-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .color-control { display: grid; grid-template-columns: auto 46px 1fr; align-items: center; gap: 9px; min-height: 38px; padding: 7px 9px; border: 1px solid #d8e0e8; border-radius: 8px; background: #fff; color: #4b5563; font-size: 12px; font-weight: 750; }
+    .color-control.active { border-color: var(--xhs-accent); box-shadow: 0 0 0 2px var(--xhs-accent-soft); }
+    .color-control input[type="color"] { width: 46px; height: 30px; padding: 2px; border-radius: 6px; cursor: pointer; }
+    .color-control output { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; color: #667085; font-size: 11px; text-align: right; }
     .tool-title { margin: 0; color: #4b5563; font-size: 12px; font-weight: 850; }
     .image-list { display: grid; gap: 8px; }
     .image-list button { text-align: left; font-size: 12px; padding: 8px 9px; font-weight: 650; }
@@ -1183,7 +1192,7 @@ function studioHtmlV2(payload, libs) {
       <div id="stageWrap" class="stage-wrap" hidden><div id="stageScale" class="stage-scale"></div></div>
     </main>
     <aside class="panel">
-      <h2>小兔Q彬 · 飞书转小红书</h2>
+      <h2>rabbitQ-lark2xhs · 飞书转小红书</h2>
       <p class="hint">飞书导出的 Markdown 与附件自动分页为 3:4 图文。悬浮区块可拖动左侧小手柄，也可按住 Alt 直接拖动；蓝色横线就是松手后的实际落点。</p>
       <div id="pageInfo" class="hint"></div>
       <div id="coverTools" class="tool-group" hidden>
@@ -1224,6 +1233,11 @@ function studioHtmlV2(payload, libs) {
           <button data-bg-theme="pink">浅粉</button>
           <button data-bg-theme="purple">浅紫</button>
         </div>
+        <label id="customBgControl" class="color-control" title="选择页面背景色；过深颜色会自动提亮以保证正文可读">
+          <span>自定义背景</span>
+          <input id="customBgColor" type="color" value="#ffffff" aria-label="自定义页面背景色" />
+          <output id="customBgValue">#FFFFFF</output>
+        </label>
         <p class="tool-title">强调色</p>
         <div class="theme-grid">
           <button data-accent-theme="blue" class="active">知蓝</button>
@@ -1233,6 +1247,12 @@ function studioHtmlV2(payload, libs) {
           <button data-accent-theme="orange">活力橙</button>
           <button data-accent-theme="purple">雾紫</button>
         </div>
+        <label id="customAccentControl" class="color-control" title="选择一个母色，自动生成强调文字、色带、卡片底色和下划线">
+          <span>自定义强调</span>
+          <input id="customAccentColor" type="color" value="#4d7fd2" aria-label="自定义强调色" />
+          <output id="customAccentValue">#4D7FD2</output>
+        </label>
+        <p class="hint">强调色会自动衍生深色文字、18% 高亮色带、浅色卡片和下划线，不会把同一个色值生硬套到所有位置。</p>
         <div id="coverThemeTools">
           <p class="tool-title">封面占位色</p>
           <div class="theme-grid">
@@ -1244,7 +1264,7 @@ function studioHtmlV2(payload, libs) {
       </div>
       <div id="layoutTools" class="tool-group">
         <label class="tool-label">封面标题字号 <input id="coverTitleRange" type="range" min="70" max="150" value="${coverTitleSize}" /></label>
-        <label class="tool-label">正文字号 <input id="bodyFontRange" type="range" min="30" max="46" value="${bodyFontSize}" /></label>
+        <label class="tool-label">正文字号 <input id="bodyFontRange" type="range" min="30" max="54" value="${bodyFontSize}" /></label>
         <label class="tool-label">正文行高 <input id="bodyLineRange" type="range" min="145" max="210" step="0.01" value="${bodyLineHeight * 100}" /></label>
         <label class="tool-label">左右边距 <input id="bodyPadXRange" type="range" min="48" max="120" value="${bodyPadX}" /></label>
         <label class="tool-label">上下边距 <input id="bodyPadYRange" type="range" min="48" max="130" value="${bodyPadTop}" /></label>
@@ -1419,6 +1439,12 @@ function studioHtmlV2(payload, libs) {
     const bgThemeButtons = Array.from(document.querySelectorAll('[data-bg-theme]'));
     const accentThemeButtons = Array.from(document.querySelectorAll('[data-accent-theme]'));
     const coverThemeButtons = Array.from(document.querySelectorAll('[data-cover-theme]'));
+    const customBgControl = document.getElementById('customBgControl');
+    const customBgColorInput = document.getElementById('customBgColor');
+    const customBgValue = document.getElementById('customBgValue');
+    const customAccentControl = document.getElementById('customAccentControl');
+    const customAccentColorInput = document.getElementById('customAccentColor');
+    const customAccentValue = document.getElementById('customAccentValue');
     const paperPatternButtons = Array.from(document.querySelectorAll('[data-paper-pattern]'));
     const cardStyleButtons = Array.from(document.querySelectorAll('[data-card-style]'));
     const coverTitleRange = document.getElementById('coverTitleRange');
@@ -1461,9 +1487,94 @@ function studioHtmlV2(payload, libs) {
     const DEFAULT_ACCENT_THEME = '${DEFAULT_ACCENT_THEME}';
     let currentBgTheme = DEFAULT_BG_THEME;
     let currentAccentTheme = DEFAULT_ACCENT_THEME;
+    let customBgColor = '';
+    let customAccentColor = '';
     let currentCoverTheme = 'background';
     let currentPaperPattern = 'none';
     let currentCardStyle = 'bar';
+    function normalizeHexColor(value, fallback = '#ffffff') {
+      const text = String(value || '').trim();
+      if (/^#[0-9a-f]{6}$/i.test(text)) return text.toLowerCase();
+      if (/^#[0-9a-f]{3}$/i.test(text)) {
+        return ('#' + text.slice(1).split('').map((char) => char + char).join('')).toLowerCase();
+      }
+      return fallback;
+    }
+    function hexToRgb(value) {
+      const hex = normalizeHexColor(value).slice(1);
+      return {
+        r: parseInt(hex.slice(0, 2), 16),
+        g: parseInt(hex.slice(2, 4), 16),
+        b: parseInt(hex.slice(4, 6), 16),
+      };
+    }
+    function rgbToHex(rgb) {
+      const channel = (value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0');
+      return '#' + channel(rgb.r) + channel(rgb.g) + channel(rgb.b);
+    }
+    function mixHex(from, to, amount) {
+      const a = hexToRgb(from);
+      const b = hexToRgb(to);
+      const ratio = Math.max(0, Math.min(1, Number(amount) || 0));
+      return rgbToHex({
+        r: a.r + (b.r - a.r) * ratio,
+        g: a.g + (b.g - a.g) * ratio,
+        b: a.b + (b.b - a.b) * ratio,
+      });
+    }
+    function rgbaHex(value, alpha) {
+      const rgb = hexToRgb(value);
+      return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + alpha + ')';
+    }
+    function relativeLuminance(value) {
+      const rgb = hexToRgb(value);
+      const linear = [rgb.r, rgb.g, rgb.b].map((channel) => {
+        const part = channel / 255;
+        return part <= 0.04045 ? part / 12.92 : Math.pow((part + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+    }
+    function contrastRatio(first, second) {
+      const a = relativeLuminance(first);
+      const b = relativeLuminance(second);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    }
+    function readableLightBackground(value) {
+      let color = normalizeHexColor(value);
+      for (let index = 0; index < 12 && contrastRatio('#111111', color) < 7; index += 1) {
+        color = mixHex(color, '#ffffff', 0.14);
+      }
+      return color;
+    }
+    function currentBackgroundPalette() {
+      if (currentBgTheme === 'custom' && customBgColor) {
+        return {
+          card: customBgColor,
+          shell: mixHex(customBgColor, relativeLuminance(customBgColor) > 0.72 ? '#000000' : '#ffffff', relativeLuminance(customBgColor) > 0.72 ? 0.045 : 0.08),
+        };
+      }
+      return BG_THEMES[currentBgTheme] || BG_THEMES[DEFAULT_BG_THEME];
+    }
+    function deriveAccentPalette(value) {
+      const base = normalizeHexColor(value, '#4d7fd2');
+      const card = currentBackgroundPalette().card;
+      let strong = mixHex(base, '#000000', 0.22);
+      for (let index = 0; index < 10 && contrastRatio(strong, card) < 4.5; index += 1) {
+        strong = mixHex(strong, '#000000', 0.12);
+      }
+      return {
+        accent: base,
+        strong,
+        soft: rgbaHex(base, 0.18),
+        pale: mixHex(card, base, 0.08),
+        underline: mixHex(card, base, 0.38),
+        underlineLine: rgbaHex(base, 0.46),
+      };
+    }
+    function currentAccentPalette() {
+      if (currentAccentTheme === 'custom' && customAccentColor) return deriveAccentPalette(customAccentColor);
+      return ACCENT_THEMES[currentAccentTheme] || ACCENT_THEMES[DEFAULT_ACCENT_THEME];
+    }
     function paperPatternSpec(key) {
       const line = Math.max(28, Math.round((config.bodyFontSize || 36) * (config.bodyLineHeight || 1.74)));
       const headingUnderline = (config.bodyPadTop || 72) + (config.headingNumberSize || 87) + Math.round((config.width || 1080) * 0.014);
@@ -5580,10 +5691,9 @@ function studioHtmlV2(payload, libs) {
         const el = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
         if (!el) return false;
         if (!bold) return Boolean(el.closest('.' + className));
-        if (el.closest('.xhs-text-regular')) return false;
-        if (el.closest('strong, b, .xhs-cover-bold')) return true;
+        if (el.closest('.xhs-text-bold, strong, b, .xhs-cover-bold')) return true;
         const weight = getComputedStyle(el).fontWeight;
-        return weight === 'bold' || (Number.parseInt(weight, 10) || 0) >= 720;
+        return weight === 'bold' || (Number.parseInt(weight, 10) || 0) >= 700;
       };
       if (range.collapsed) return styled(range.startContainer) ? 'on' : 'off';
       const textNodes = [];
@@ -6392,7 +6502,7 @@ function studioHtmlV2(payload, libs) {
       const padY = Number(bodyPadYRange.value);
       const fontSize = Number(bodyFontRange.value);
       const requestedLineHeight = Number(bodyLineRange.value) / 100;
-      const defaultLineHeight = (36 + ${BODY_LINE_GAP}) / 36;
+      const defaultLineHeight = (${BODY_FONT_SIZE} + ${BODY_LINE_GAP}) / ${BODY_FONT_SIZE};
       const lineHeight = Math.abs(requestedLineHeight - defaultLineHeight) < 0.0002
         ? defaultLineHeight
         : requestedLineHeight;
@@ -6425,16 +6535,38 @@ function studioHtmlV2(payload, libs) {
     function applyBackgroundTheme(key, shouldSave = true) {
       const theme = BG_THEMES[key] || BG_THEMES[DEFAULT_BG_THEME];
       currentBgTheme = BG_THEMES[key] ? key : DEFAULT_BG_THEME;
+      customBgColor = '';
       const root = document.documentElement.style;
       root.setProperty('--xhs-shell-bg', theme.shell);
       root.setProperty('--xhs-card-bg', theme.card);
       bgThemeButtons.forEach((button) => button.classList.toggle('active', button.dataset.bgTheme === key));
+      customBgControl?.classList.remove('active');
+      if (customBgColorInput) customBgColorInput.value = theme.card;
+      if (customBgValue) customBgValue.textContent = theme.card.toUpperCase();
+      if (currentAccentTheme === 'custom' && customAccentColor) applyCustomAccent(customAccentColor, false);
+      if (currentCoverTheme === 'background') applyCoverTheme(currentCoverTheme, false);
+      if (shouldSave) saveCurrentPage();
+    }
+    function applyCustomBackground(value, shouldSave = true) {
+      const color = readableLightBackground(value);
+      customBgColor = color;
+      currentBgTheme = 'custom';
+      const theme = currentBackgroundPalette();
+      const root = document.documentElement.style;
+      root.setProperty('--xhs-shell-bg', theme.shell);
+      root.setProperty('--xhs-card-bg', theme.card);
+      bgThemeButtons.forEach((button) => button.classList.remove('active'));
+      customBgControl?.classList.add('active');
+      if (customBgColorInput) customBgColorInput.value = color;
+      if (customBgValue) customBgValue.textContent = color.toUpperCase();
+      if (currentAccentTheme === 'custom' && customAccentColor) applyCustomAccent(customAccentColor, false);
       if (currentCoverTheme === 'background') applyCoverTheme(currentCoverTheme, false);
       if (shouldSave) saveCurrentPage();
     }
     function applyAccentTheme(key, shouldSave = true) {
       const theme = ACCENT_THEMES[key] || ACCENT_THEMES[DEFAULT_ACCENT_THEME];
       currentAccentTheme = ACCENT_THEMES[key] ? key : DEFAULT_ACCENT_THEME;
+      customAccentColor = '';
       const root = document.documentElement.style;
       root.setProperty('--xhs-accent', theme.accent);
       root.setProperty('--xhs-accent-strong', theme.strong);
@@ -6443,14 +6575,36 @@ function studioHtmlV2(payload, libs) {
       root.setProperty('--xhs-underline', theme.underline);
       root.setProperty('--xhs-underline-line', theme.underlineLine || theme.underline);
       accentThemeButtons.forEach((button) => button.classList.toggle('active', button.dataset.accentTheme === key));
+      customAccentControl?.classList.remove('active');
+      if (customAccentColorInput) customAccentColorInput.value = theme.accent;
+      if (customAccentValue) customAccentValue.textContent = theme.accent.toUpperCase();
       if (currentCoverTheme === 'accent') applyCoverTheme(currentCoverTheme, false);
       if (currentCoverTheme === 'background') applyCoverTheme(currentCoverTheme, false);
       if (shouldSave) saveCurrentPage();
     }
+    function applyCustomAccent(value, shouldSave = true) {
+      const color = normalizeHexColor(value, '#4d7fd2');
+      customAccentColor = color;
+      currentAccentTheme = 'custom';
+      const theme = deriveAccentPalette(color);
+      const root = document.documentElement.style;
+      root.setProperty('--xhs-accent', theme.accent);
+      root.setProperty('--xhs-accent-strong', theme.strong);
+      root.setProperty('--xhs-accent-soft', theme.soft);
+      root.setProperty('--xhs-accent-pale', theme.pale);
+      root.setProperty('--xhs-underline', theme.underline);
+      root.setProperty('--xhs-underline-line', theme.underlineLine);
+      accentThemeButtons.forEach((button) => button.classList.remove('active'));
+      customAccentControl?.classList.add('active');
+      if (customAccentColorInput) customAccentColorInput.value = color;
+      if (customAccentValue) customAccentValue.textContent = color.toUpperCase();
+      if (currentCoverTheme === 'accent' || currentCoverTheme === 'background') applyCoverTheme(currentCoverTheme, false);
+      if (shouldSave) saveCurrentPage();
+    }
     function applyCoverTheme(key, shouldSave = true) {
       currentCoverTheme = key || 'background';
-      const bg = BG_THEMES[currentBgTheme] || BG_THEMES[DEFAULT_BG_THEME];
-      const accent = ACCENT_THEMES[currentAccentTheme] || ACCENT_THEMES[DEFAULT_ACCENT_THEME];
+      const bg = currentBackgroundPalette();
+      const accent = currentAccentPalette();
       const root = document.documentElement.style;
       if (currentCoverTheme === 'accent') {
         root.setProperty('--xhs-cover-bg', accent.underline);
@@ -7469,9 +7623,9 @@ function studioHtmlV2(payload, libs) {
       }
       if (selection && selection.rangeCount && !selection.getRangeAt(0).collapsed) {
         const range = restrictRangeToInlineHost(selection.getRangeAt(0));
-        if (applyFormattingMultiBlock(range, 'xhs-text-regular')) return;
+        if (applyFormattingMultiBlock(range, 'xhs-text-bold')) return;
       }
-      toggleInlineClass('xhs-text-regular', 'font-weight:550');
+      toggleInlineClass('xhs-text-bold', 'font-weight:700');
     }
     function italicSelection() {
       if (tryToggleOrSwitchFlowBlock('quote')) return;
@@ -7940,7 +8094,7 @@ function studioHtmlV2(payload, libs) {
         };
       }
       return {
-        generator: 'rabbitQ-skill-lark-xhs',
+        generator: 'rabbitq-lark2xhs',
         version: config.version,
         savedAt: new Date().toISOString(),
         sourceFingerprint: config.sourceFingerprint || '',
@@ -7949,6 +8103,8 @@ function studioHtmlV2(payload, libs) {
         pages: serializedDomCache.pages,
         currentBgTheme,
         currentAccentTheme,
+        customBgColor,
+        customAccentColor,
         currentCoverTheme,
         currentPaperPattern,
         currentCardStyle,
@@ -8208,8 +8364,16 @@ function studioHtmlV2(payload, libs) {
           if (state.controls.bodyPadX) bodyPadXRange.value = state.controls.bodyPadX;
           if (state.controls.bodyPadY) bodyPadYRange.value = state.controls.bodyPadY;
         }
-        applyBackgroundTheme(state.currentBgTheme || DEFAULT_BG_THEME, false);
-        applyAccentTheme(state.currentAccentTheme || DEFAULT_ACCENT_THEME, false);
+        if (state.currentBgTheme === 'custom' && state.customBgColor) {
+          applyCustomBackground(state.customBgColor, false);
+        } else {
+          applyBackgroundTheme(state.currentBgTheme || DEFAULT_BG_THEME, false);
+        }
+        if (state.currentAccentTheme === 'custom' && state.customAccentColor) {
+          applyCustomAccent(state.customAccentColor, false);
+        } else {
+          applyAccentTheme(state.currentAccentTheme || DEFAULT_ACCENT_THEME, false);
+        }
         applyCoverTheme(state.currentCoverTheme || 'background', false);
         applyPaperPattern(state.currentPaperPattern || 'none', false);
         applyCardStyle(state.currentCardStyle || 'bar', false);
@@ -8530,7 +8694,7 @@ function studioHtmlV2(payload, libs) {
         return Boolean(blocks[blocks.length - 1]?.classList?.contains('xhs-heading'));
       });
     }
-    document.querySelectorAll('.toolbar button, .panel button, .panel input[type="range"]').forEach((control) => {
+    document.querySelectorAll('.toolbar button, .panel button, .panel input[type="range"], .panel input[type="color"]').forEach((control) => {
       control.addEventListener('pointerdown', () => {
         historyTypingActive = false;
         historyTypingTarget = null;
@@ -8563,6 +8727,8 @@ function studioHtmlV2(payload, libs) {
     coverModeNoneBtn?.addEventListener('click', () => applyCoverMode('none'));
     bgThemeButtons.forEach((button) => button.addEventListener('click', () => applyBackgroundTheme(button.dataset.bgTheme)));
     accentThemeButtons.forEach((button) => button.addEventListener('click', () => applyAccentTheme(button.dataset.accentTheme)));
+    customBgColorInput?.addEventListener('input', () => applyCustomBackground(customBgColorInput.value));
+    customAccentColorInput?.addEventListener('input', () => applyCustomAccent(customAccentColorInput.value));
     coverThemeButtons.forEach((button) => button.addEventListener('click', () => applyCoverTheme(button.dataset.coverTheme)));
     paperPatternButtons.forEach((button) => button.addEventListener('click', () => applyPaperPattern(button.dataset.paperPattern)));
     cardStyleButtons.forEach((button) => button.addEventListener('click', () => applyCardStyle(button.dataset.cardStyle)));
@@ -8719,9 +8885,9 @@ function main() {
       bodyPadBottom,
       bodyContentWidth: opts.width - bodyPadX * 2,
       bodyContentHeight: opts.height - bodyPadTop - bodyPadBottom,
-      bodyFontSize: Math.round(36 * scaleX),
-      bodyLineHeight: (36 + BODY_LINE_GAP) / 36,
-      bodyCharsPerLine: 21,
+      bodyFontSize: Math.round(BODY_FONT_SIZE * scaleX),
+      bodyLineHeight: (BODY_FONT_SIZE + BODY_LINE_GAP) / BODY_FONT_SIZE,
+      bodyCharsPerLine: 23,
       headingNumberSize: Math.round(87 * scaleX),
       headingTitleSize: Math.round(48 * scaleX),
       coverImageSrc,
@@ -8738,7 +8904,7 @@ function main() {
     const manifestPath = path.join(outDir, "manifest.json");
     fs.writeFileSync(studioPath, studioHtmlV2(payload, libs));
     writeJson(manifestPath, {
-      generator: "rabbitQ-skill-lark-xhs",
+      generator: "rabbitq-lark2xhs",
       version: VERSION,
       mode: "lark-xhs-fixed-pages",
       title: payload.title,

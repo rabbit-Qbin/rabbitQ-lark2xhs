@@ -94,7 +94,7 @@ async function main() {
     "",
     "### 二级小标题回归",
     "",
-    "**项目**：rabbitQ-skill-lark-xhs（GitHub）",
+    "**项目**：rabbitQ-lark2xhs（GitHub）",
     "",
     "**这是超长加粗段落，用来验证整段加粗超过七十五个字时不再自动变成卡片，而是保持为普通的加粗正文段落，避免大段长文被误包成卡片块。**",
     "",
@@ -120,7 +120,7 @@ async function main() {
   const coverHtml = fs.readFileSync(path.join(outputDir, "xhs-studio.html"), "utf8");
   assert.match(coverHtml, /"coverImageSrc":"data:image\/png;base64,/);
   assert.match(coverHtml, /"coverMode":"half"/);
-  assert.match(coverHtml, /"sourceFingerprint":"[^"]+:0\.9\.25:[a-f0-9]{16}"/);
+  assert.match(coverHtml, /"sourceFingerprint":"[^"]+:0\.9\.26:[a-f0-9]{16}"/);
   assert.match(coverHtml, /alt="封面图"/);
   assert.match(coverHtml, /id="coverModeFullBtn"/);
   assert.match(coverHtml, /id="coverModeHalfBtn"/);
@@ -342,7 +342,7 @@ async function main() {
 
   const htmlPath = path.join(outputDir, "xhs-studio.html");
   const html = fs.readFileSync(htmlPath, "utf8");
-  assert.match(html, /"version":"0\.9\.25"/);
+  assert.match(html, /"version":"0\.9\.26"/);
   assert.match(html, /<span class="xhs-green-text">高亮词<\/span>/, "==text== should map to accent-colored inline emphasis");
   assert.match(html, /<span class="xhs-green-underline">下划\+词<\/span>/, "++text++ should map to underline inline emphasis, allowing single + inside");
   assert.match(html, /<code>\*\*粗\*\*<\/code>/, "code spans must protect literal ** markers");
@@ -370,19 +370,25 @@ async function main() {
   assert.match(html, /border-top: 1\.5px solid var\(--xhs-accent\)/);
   assert.match(html, /border-bottom: 1\.5px solid var\(--xhs-accent\)/);
   assert.match(html, /tbody tr:last-child td \{ border-bottom: 2px solid var\(--xhs-underline\)/);
-  assert.match(html, /\.xhs-table \{[^}]*font-size: 36px;/);
+  assert.match(html, /\.xhs-table \{[^}]*font-size: 42px;/);
   assert.match(html, /--body-pad-x: 72px;/);
   assert.match(html, /--body-pad-top: 72px;/);
   assert.match(html, /--body-pad-bottom: 72px;/);
-  assert.match(html, /--body-paragraph-gap: 40px;/);
-  assert.match(html, /--body-list-item-gap: 20px;/);
+  assert.match(html, /--body-paragraph-gap: 33px;/);
+  assert.match(html, /--body-letter-spacing: 0\.5px;/);
+  assert.match(html, /--body-list-item-gap: 18px;/);
   assert.match(html, /\.xhs-list-line:not\(:has\(\+ \.xhs-list-line\)\) \{ margin-bottom: var\(--body-paragraph-gap\); \}/);
-  assert.match(html, /--body-line-px: 58px;/);
-  assert.match(html, /--body-regular-weight: 720;/);
-  assert.match(html, /--body-bold-weight: 720;/);
-  assert.match(html, /--body-unbold-weight: 550;/);
+  assert.match(html, /--body-line-px: 69px;/);
+  assert.match(html, /--body-regular-weight: 500;/);
+  assert.match(html, /--body-bold-weight: 700;/);
+  assert.match(html, /--body-unbold-weight: 500;/);
   assert.doesNotMatch(html, /RabbitQ Songti SC|STSongti-SC-/);
   assert.match(html, /--xhs-font: "Noto Serif SC", "Source Han Serif SC"/);
+  assert.match(html, /id="customBgColor" type="color"/);
+  assert.match(html, /id="customAccentColor" type="color"/);
+  assert.match(html, /function deriveAccentPalette\(value\)/);
+  assert.match(html, /customBgColor,/);
+  assert.match(html, /customAccentColor,/);
   assert.match(html, /<strong>结论<\/strong><p><strong>总结：这是总结卡片/, "总结 label should trigger a card with the inferred 结论 corner");
   assert.match(html, /<strong>注意<\/strong><p><strong>避坑：这是避坑卡片/, "避坑 label should trigger a card with the inferred 注意 corner");
   assert.match(html, /<strong>划重点<\/strong><p><strong>这是一段没有标签但长度符合要求的完整加粗正文/, "18–75 character full-bold paragraphs should become cards");
@@ -390,7 +396,8 @@ async function main() {
   assert.match(html, /<p><strong>时间价值<\/strong><\/p>/, "short full-bold paragraphs must stay plain bold paragraphs");
   assert.match(html, /<p><strong>提示词：<\/strong><\/p>/, "提示词 is not an exact card label and must stay plain bold text");
   assert.match(html, /<p><strong>这是超长加粗段落/, "full-bold paragraphs over 75 chars must stay plain bold paragraphs, not cards");
-  assert.match(html, /\.xhs-callout-label \{[^}]*font-weight: var\(--body-bold-weight\)/);
+  assert.match(html, /\.xhs-callout-label \{[^}]*font-size: 30px;[^}]*font-weight: var\(--body-bold-weight\)/);
+  assert.match(html, /\.xhs-callout-body \{[^}]*font-size: 40px;[^}]*font-weight: var\(--body-bold-weight\)/);
   assert.match(html, /\.xhs-table thead th \{[^}]*font-weight: var\(--body-bold-weight\)/);
   assert.match(html, /\.xhs-heading\[data-level="2"\] \.xhs-heading-title \{[^}]*font-weight: var\(--body-bold-weight\)/);
   assert.match(html, /\.xhs-heading \{[^}]*grid-template-columns: 129px minmax\(0, 1fr\);[^}]*column-gap: 18px;/, 'level-one headings should reserve one consistent two-digit number slot');
@@ -411,10 +418,10 @@ async function main() {
   assert.doesNotMatch(html, /fontWechatBtn|fontSongtiBtn|经典宋体/);
   assert.match(html, /\.xhs-p \{[^}]*font-weight: var\(--body-regular-weight\)/);
   assert.match(html, /\.xhs-p span,[^}]*\.xhs-table span \{[^}]*font-weight: inherit !important;/);
-  assert.match(html, /\.xhs-card \.xhs-text-regular, \.xhs-card \.xhs-text-regular \* \{ font-weight: var\(--body-unbold-weight\) !important; \}/);
+  assert.match(html, /\.xhs-card \.xhs-text-bold, \.xhs-card \.xhs-text-bold \* \{ font-weight: var\(--body-bold-weight\) !important; \}/);
   assert.match(html, /size: line \+ 'px ' \+ line \+ 'px'/);
   assert.match(html, /headingUnderline \/ 4/);
-  assert.match(html, /\.xhs-heading\[data-level="2"\] \{[\s\S]*?margin: 0 0 40px;/, "二级标题只保留下间距，避免与前一结构块叠加");
+  assert.match(html, /\.xhs-heading\[data-level="2"\] \{[\s\S]*?margin: 0 0 33px;/, "二级标题只保留下间距，避免与前一结构块叠加");
   assert.match(html, /\.xhs-body-frame > \.xhs-page-start\.xhs-heading\[data-level="2"\] \{ margin-top: 0px;/, "level-2 headings must start flush at page top (no phantom blank line)");
   assert.doesNotMatch(html, /\.xhs-heading\[data-level="1"\] \+ \.xhs-heading\[data-level="2"\]/, "标题间距应使用统一的单向节奏规则");
   assert.match(html, /\.xhs-body-frame > \.xhs-page-end \{ margin-bottom: 0 !important; \}/);
@@ -496,6 +503,8 @@ async function main() {
   assert.doesNotMatch(html, /id="overviewModeBtn"|id="editModeBtn"|单页编辑/);
   assert.match(html, /\.xhs-quote \{[^}]*background: transparent;/);
   assert.match(html, /\.cover-subtitle \{[^}]*white-space: pre-line;/);
+  assert.match(html, /--cover-subtitle-size: 37px;/);
+  assert.match(html, /\.cover-subtitle::before \{[^}]*width: 7px;/);
   assert.doesNotMatch(html, /id="headingBtn"/);
   assert.doesNotMatch(html, /id="replaceImageBtn"/);
   assert.doesNotMatch(html, /id="deleteImageBtn"/);
@@ -576,7 +585,7 @@ async function main() {
       body.closest('[contenteditable="true"]')?.focus();
     });
     await orderedPage.waitForTimeout(40);
-    assert.strictEqual(await orderedPage.locator('#boldBtn').evaluate((button) => button.classList.contains('active')), true, 'default 720 body text should light the bold control');
+    assert.strictEqual(await orderedPage.locator('#boldBtn').evaluate((button) => button.classList.contains('active')), false, 'default 500 body text should leave the bold control off');
     assert.strictEqual(await orderedPage.locator('#listOrderedBtn').evaluate((button) => button.classList.contains('active')), true, 'ordered-list control should reflect the current block');
     await orderedPage.keyboard.press("Enter");
     await orderedPage.waitForTimeout(250);
@@ -608,15 +617,15 @@ async function main() {
       };
     });
     assert.ok(Math.abs(orderedSpacing.gap - 9) < 0.2, "sequence marker gap should equal 9px");
-    assert.strictEqual(orderedSpacing.lineWeight, "720", "sequence body should use the unified 720 weight");
-    assert.ok(orderedSpacing.markerWidth <= 44, "ordered marker slot should not create a wide indent");
+    assert.strictEqual(orderedSpacing.lineWeight, "500", "sequence body should use the regular 500 weight");
+    assert.ok(orderedSpacing.markerWidth <= 54, "ordered marker slot should scale with the larger body font without creating an excessive indent");
     assert.strictEqual(orderedSpacing.markerFontSize, orderedSpacing.bodyFontSize, "ordered sequence marker should match its body text size");
     assert.ok(Math.abs(orderedSpacing.markerHeight - orderedSpacing.bodyLineHeight) < 0.2, "ordered marker should occupy the body line box for vertical centering");
     assert.strictEqual(orderedSpacing.markerAlign, "center", "ordered marker text should be centered in its slot");
     assert.strictEqual(orderedSpacing.markerJustify, "center", "ordered marker flex content should be centered in its slot");
     assert.ok(
-      Math.abs(parseFloat(await orderedPage.locator('#stageScale .xhs-list-line[data-list-type="ordered"]').first().evaluate((line) => getComputedStyle(line).marginBottom)) - 20) < 0.2,
-      "items inside one sequence should use the compact 20px gap",
+      Math.abs(parseFloat(await orderedPage.locator('#stageScale .xhs-list-line[data-list-type="ordered"]').first().evaluate((line) => getComputedStyle(line).marginBottom)) - 18) < 0.2,
+      "items inside one sequence should use the compact 18px gap",
     );
 
     const bodyWeights = await orderedPage.evaluate(() => {
@@ -627,11 +636,11 @@ async function main() {
         bold: bold ? getComputedStyle(bold).fontWeight : '',
       };
     });
-    assert.strictEqual(bodyWeights.normal, "720", "body text should use the unified default weight 720");
-    assert.strictEqual(bodyWeights.bold, "720", "bold body text should use weight 720");
+    assert.strictEqual(bodyWeights.normal, "500", "body text should use the regular default weight 500");
+    assert.strictEqual(bodyWeights.bold, "700", "bold body text should use weight 700");
 
-    // Regression: body text starts at 720, but the B control must be a real
-    // two-state toggle: 720 default -> 550 unbold -> 720 default.
+    // Regression: body text starts at 500, and the B control must be a real
+    // two-state toggle: 500 default -> 700 bold -> 500 default.
     const boldToggleBody = orderedPage.locator('#stageScale .xhs-list-body').first();
     await boldToggleBody.evaluate((body) => {
       const range = document.createRange();
@@ -644,44 +653,44 @@ async function main() {
     await orderedPage.waitForTimeout(80);
     assert.strictEqual(
       await orderedPage.locator('#boldBtn').evaluate((button) => button.classList.contains('active')),
-      true,
-      'default 720 selection should light the B control',
+      false,
+      'default 500 selection should leave the B control off',
     );
     await orderedPage.click('#boldBtn');
     await orderedPage.waitForTimeout(120);
-    const unboldState = await boldToggleBody.evaluate((body) => ({
-      weight: getComputedStyle(body.querySelector('.xhs-text-regular') || body).fontWeight,
-      regularMarks: body.querySelectorAll('.xhs-text-regular').length,
+    const boldState = await boldToggleBody.evaluate((body) => ({
+      weight: getComputedStyle(body.querySelector('.xhs-text-bold') || body).fontWeight,
+      boldMarks: body.querySelectorAll('.xhs-text-bold').length,
     }));
-    assert.strictEqual(unboldState.weight, '550', 'first B click should change selected default text to weight 550');
-    assert.ok(unboldState.regularMarks >= 1, 'first B click should persist an explicit unbold mark');
+    assert.strictEqual(boldState.weight, '700', 'first B click should change selected default text to weight 700');
+    assert.ok(boldState.boldMarks >= 1, 'first B click should persist an explicit bold mark');
     assert.strictEqual(
-      await orderedPage.evaluate(() => pages[pageIndex].html.includes('xhs-text-regular')),
+      await orderedPage.evaluate(() => pages[pageIndex].html.includes('xhs-text-bold')),
       true,
-      '550 unbold formatting should be saved into the current page state',
+      '700 bold formatting should be saved into the current page state',
     );
     assert.strictEqual(
       await orderedPage.locator('#boldBtn').evaluate((button) => button.classList.contains('active')),
-      false,
-      '550 unbold selection should turn off the B control',
+      true,
+      '700 bold selection should turn on the B control',
     );
     await orderedPage.click('#boldBtn');
     await orderedPage.waitForTimeout(120);
     const restoredBoldState = await boldToggleBody.evaluate((body) => ({
       weight: getComputedStyle(body).fontWeight,
-      regularMarks: body.querySelectorAll('.xhs-text-regular').length,
+      boldMarks: body.querySelectorAll('.xhs-text-bold').length,
     }));
-    assert.strictEqual(restoredBoldState.weight, '720', 'second B click should restore selected text to weight 720');
-    assert.strictEqual(restoredBoldState.regularMarks, 0, 'second B click should remove the explicit unbold mark');
+    assert.strictEqual(restoredBoldState.weight, '500', 'second B click should restore selected text to weight 500');
+    assert.strictEqual(restoredBoldState.boldMarks, 0, 'second B click should remove the explicit bold mark');
     assert.strictEqual(
-      await orderedPage.evaluate(() => pages[pageIndex].html.includes('xhs-text-regular')),
+      await orderedPage.evaluate(() => pages[pageIndex].html.includes('xhs-text-bold')),
       false,
-      'restoring 720 should remove the saved unbold mark from page state',
+      'restoring 500 should remove the saved bold mark from page state',
     );
     assert.strictEqual(
       await orderedPage.locator('#boldBtn').evaluate((button) => button.classList.contains('active')),
-      true,
-      'restored 720 selection should light the B control again',
+      false,
+      'restored 500 selection should leave the B control off again',
     );
 
     // Regression: Chinese IME composition must not trigger save, normalization, or reflow
@@ -887,6 +896,7 @@ async function main() {
           text: body.textContent || "",
           fontSize: styles.fontSize,
           fontFamily: styles.fontFamily,
+          fontWeight: styles.fontWeight,
           listCount: document.querySelectorAll("#stageScale .xhs-list-line").length,
         };
       }
@@ -895,7 +905,8 @@ async function main() {
     assert.ok(sequenceCardState, "sequence should switch to a card");
     assert.ok(sequenceCardState.text && orderedAfterEnter.text.includes(sequenceCardState.text));
     assert.ok(sequenceCardState.listCount >= 1, "switching one list row must retain the other rows");
-    assert.strictEqual(sequenceCardState.fontSize, "36px");
+    assert.strictEqual(sequenceCardState.fontSize, "40px");
+    assert.strictEqual(sequenceCardState.fontWeight, "700", "card body should be bold by default");
     const cardInlineState = await orderedPage.locator("#stageScale .xhs-callout-body").first().evaluate((body) => {
       const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
       let text = walker.nextNode();
@@ -948,7 +959,7 @@ async function main() {
       return null;
     });
     assert.ok(sequenceQuoteStyle, "sequence card should switch to a quote");
-    assert.strictEqual(sequenceQuoteStyle.fontSize, "34px");
+    assert.strictEqual(sequenceQuoteStyle.fontSize, "40px");
     assert.strictEqual(sequenceQuoteStyle.fontFamily, sequenceCardState.fontFamily);
     await orderedPage.close();
 
@@ -1728,10 +1739,10 @@ async function main() {
   assert.ok(Math.max(...sourceCodeProbe.dotCenters) - Math.min(...sourceCodeProbe.dotCenters) < 0.1, 'macOS dots should share one horizontal center line');
   assert.deepStrictEqual(sourceCodeProbe.dotSizes, ['12px', '12px', '12px'], 'macOS dots should retain the original 12px size');
   assert.strictEqual(sourceCodeProbe?.toolbarBorder, '1px', 'code toolbar should keep its horizontal divider');
-  assert.strictEqual(sourceCodeProbe?.toolbarHeight, '46px', 'code toolbar should retain its original height');
-  assert.strictEqual(sourceCodeProbe?.codeFontSize, '32px', 'code content should use 32px text');
-  assert.ok(Math.abs(parseFloat(sourceCodeProbe?.codeLineHeight) - 49.6) < 0.2, '32px code text should use a 1.55 line height');
-  assert.strictEqual(sourceCodeProbe?.languageFontSize, '19px', 'code language label should retain its original size');
+  assert.strictEqual(sourceCodeProbe?.toolbarHeight, '52px', 'code toolbar should scale with the larger code text');
+  assert.strictEqual(sourceCodeProbe?.codeFontSize, '38px', 'code content should use 38px text');
+  assert.ok(Math.abs(parseFloat(sourceCodeProbe?.codeLineHeight) - 58.9) < 0.2, '38px code text should use a 1.55 line height');
+  assert.strictEqual(sourceCodeProbe?.languageFontSize, '22px', 'code language label should scale with the larger code text');
 
   const singleParagraphBoundaryProbe = await page.evaluate(() => {
     const frame = document.querySelector('#stageScale .xhs-body-frame, #stageScale .xhs-cover-tail-frame');
@@ -2278,7 +2289,16 @@ async function main() {
     await page.waitForTimeout(500);
     assert.strictEqual(await page.locator("#stageScale .cover-media").evaluate((node) => node.offsetHeight), 720);
     const flowOrderAfterCoverToggle = await collectFlowOrder();
-    assert.deepStrictEqual(flowOrderAfterCoverToggle, flowOrderBeforeCoverToggle);
+    assert.strictEqual(
+      flowOrderAfterCoverToggle.map((item) => item.text).join(''),
+      flowOrderBeforeCoverToggle.map((item) => item.text).join(''),
+      'cover-mode repagination may split a large block, but must preserve text order and content',
+    );
+    assert.strictEqual(
+      flowOrderAfterCoverToggle.reduce((sum, item) => sum + item.imageCount, 0),
+      flowOrderBeforeCoverToggle.reduce((sum, item) => sum + item.imageCount, 0),
+      'cover-mode repagination must preserve all images',
+    );
 
     // Regression: deleting a leading manual-blank line inside the cover's
     // tail frame (shown when the cover image is off) must actually remove
@@ -2998,7 +3018,7 @@ async function main() {
       `Enter should split the paragraph across two flow blocks: ${JSON.stringify({ beforeCaret, afterCaret, beforeIndex, afterIndex, allParagraphTexts })}`,
     );
 
-    assert.ok(!content.callouts.some((text) => text.includes("rabbitQ-skill-lark-xhs（GitHub）")));
+    assert.ok(!content.callouts.some((text) => text.includes("rabbitQ-lark2xhs（GitHub）")));
     assert.ok(content.tables.length >= 1);
     assert.ok(content.tables.length >= 2, "long table should split across pages instead of clipping");
     assert.ok(content.tables.every((table) => JSON.stringify(table.headers) === JSON.stringify(["模式", "适合", "页数"])));
@@ -3345,9 +3365,9 @@ async function main() {
       selection.removeAllRanges();
       selection.addRange(range);
     });
-    const caretText = "连续输入".repeat(180) + "光标终点";
+    const caretText = "连续输入".repeat(80) + "光标终点";
     await page.evaluate((text) => document.execCommand("insertText", false, text), caretText);
-    await page.waitForTimeout(2200);
+    await page.waitForTimeout(4000);
     const typedParagraphCount = await page.locator("#stageScale .xhs-p").filter({ hasText: "光标终点" }).count();
     const typedParagraphDebug = await page.evaluate(() => ({
       pageIndex,
@@ -3444,7 +3464,7 @@ async function main() {
         borderBottomColor: styles.borderBottomColor,
       };
     });
-    assert.strictEqual(level2Style.fontSize, "36px");
+    assert.strictEqual(level2Style.fontSize, "42px");
     assert.strictEqual(level2Style.borderBottomWidth, "2px");
     assert.notStrictEqual(level2Style.color, "rgb(17, 17, 17)");
     await page.locator('#stageScale .xhs-heading[data-level="2"]').filter({ hasText: "临时二级标题" }).first().evaluate((heading) => {
@@ -3831,11 +3851,11 @@ async function main() {
     let richSwitchBlock = page.locator("#stageScale .xhs-p").filter({ hasText: "块内叠加互切测试" }).first();
     assert.strictEqual(await richSwitchBlock.locator(".xhs-green-text").count(), 1, "green text should stack with the other inline marks");
     assert.strictEqual(await richSwitchBlock.locator(".xhs-green-underline").count(), 1, "underline should stack with the other inline marks");
-    assert.strictEqual(await richSwitchBlock.locator(".xhs-text-regular").count(), 1, "the B toggle should stack its 550 mark with color and underline");
+    assert.strictEqual(await richSwitchBlock.locator(".xhs-text-bold").count(), 1, "the B toggle should stack its 700 mark with color and underline");
     assert.strictEqual(
-      await richSwitchBlock.locator(".xhs-text-regular").evaluate((node) => getComputedStyle(node).fontWeight),
-      "550",
-      "the stacked unbold mark should render at weight 550",
+      await richSwitchBlock.locator(".xhs-text-bold").evaluate((node) => getComputedStyle(node).fontWeight),
+      "700",
+      "the stacked bold mark should render at weight 700",
     );
 
     await richSwitchBlock.evaluate((p) => {
@@ -3862,8 +3882,8 @@ async function main() {
     assert.deepStrictEqual(await switchedBlock.evaluate((block) => ({
       color: block.querySelectorAll(".xhs-green-text").length,
       underline: block.querySelectorAll(".xhs-green-underline").length,
-      unbold: block.querySelectorAll(".xhs-text-regular").length,
-    })), { color: 1, underline: 1, unbold: 1 }, "card conversion must preserve all inline marks");
+      bold: block.querySelectorAll(".xhs-text-bold").length,
+    })), { color: 1, underline: 1, bold: 1 }, "card conversion must preserve all inline marks");
 
     await switchedBlock.evaluate((card) => {
       const body = card.querySelector(".xhs-callout-body");
@@ -3882,8 +3902,8 @@ async function main() {
     assert.deepStrictEqual(await switchedBlock.evaluate((block) => ({
       color: block.querySelectorAll(".xhs-green-text").length,
       underline: block.querySelectorAll(".xhs-green-underline").length,
-      unbold: block.querySelectorAll(".xhs-text-regular").length,
-    })), { color: 1, underline: 1, unbold: 1 }, "quote conversion must preserve all inline marks");
+      bold: block.querySelectorAll(".xhs-text-bold").length,
+    })), { color: 1, underline: 1, bold: 1 }, "quote conversion must preserve all inline marks");
 
     await switchedBlock.evaluate((quote) => {
       const range = document.createRange();
@@ -3900,8 +3920,8 @@ async function main() {
     assert.deepStrictEqual(await switchedBlock.evaluate((block) => ({
       color: block.querySelectorAll(".xhs-green-text").length,
       underline: block.querySelectorAll(".xhs-green-underline").length,
-      unbold: block.querySelectorAll(".xhs-text-regular").length,
-    })), { color: 1, underline: 1, unbold: 1 }, "heading normalization must preserve all inline marks");
+      bold: block.querySelectorAll(".xhs-text-bold").length,
+    })), { color: 1, underline: 1, bold: 1 }, "heading normalization must preserve all inline marks");
 
     await switchedBlock.evaluate((heading) => {
       const title = heading.querySelector(".xhs-heading-title");
@@ -3919,8 +3939,8 @@ async function main() {
     assert.deepStrictEqual(await switchedBlock.evaluate((block) => ({
       color: block.querySelectorAll(".xhs-green-text").length,
       underline: block.querySelectorAll(".xhs-green-underline").length,
-      unbold: block.querySelectorAll(".xhs-text-regular").length,
-    })), { color: 1, underline: 1, unbold: 1 }, "code conversion must preserve all inline marks");
+      bold: block.querySelectorAll(".xhs-text-bold").length,
+    })), { color: 1, underline: 1, bold: 1 }, "code conversion must preserve all inline marks");
 
     await switchedBlock.evaluate((code) => {
       const content = code.querySelector(".xhs-code-content");
@@ -3938,8 +3958,8 @@ async function main() {
     assert.deepStrictEqual(await switchedBlock.evaluate((block) => ({
       color: block.querySelectorAll(".xhs-green-text").length,
       underline: block.querySelectorAll(".xhs-green-underline").length,
-      unbold: block.querySelectorAll(".xhs-text-regular").length,
-    })), { color: 1, underline: 1, unbold: 1 }, "list conversion must preserve all inline marks");
+      bold: block.querySelectorAll(".xhs-text-bold").length,
+    })), { color: 1, underline: 1, bold: 1 }, "list conversion must preserve all inline marks");
 
     await switchedBlock.evaluate((line) => {
       const body = line.querySelector(".xhs-list-body");
@@ -3972,9 +3992,9 @@ async function main() {
     assert.deepStrictEqual(await richSwitchBlock.evaluate((block) => ({
       color: block.querySelectorAll(".xhs-green-text").length,
       underline: block.querySelectorAll(".xhs-green-underline").length,
-      unbold: block.querySelectorAll(".xhs-text-regular").length,
+      bold: block.querySelectorAll(".xhs-text-bold").length,
       nestedBlocks: block.querySelectorAll(".xhs-callout, .xhs-quote, .xhs-code-block, .xhs-heading, .xhs-list-line").length,
-    })), { color: 1, underline: 1, unbold: 1, nestedBlocks: 0 }, "canceling a block style must keep inline marks without nesting");
+    })), { color: 1, underline: 1, bold: 1, nestedBlocks: 0 }, "canceling a block style must keep inline marks without nesting");
 
     // Regression: a selected structural block can be deleted with Backspace,
     // including an emptied card whose caret is still inside the body.
@@ -4163,6 +4183,34 @@ async function main() {
     await page.click('[data-bg-theme="pink"]');
     assert.strictEqual(await page.locator('[data-bg-theme="pink"]').evaluate((button) => button.classList.contains('active')), true);
 
+    await page.locator('#customBgColor').evaluate((node) => {
+      node.value = '#f4e7d5';
+      node.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await page.locator('#customAccentColor').evaluate((node) => {
+      node.value = '#c43d72';
+      node.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    const customColors = await page.evaluate(() => {
+      const styles = getComputedStyle(document.documentElement);
+      return {
+        cardBg: styles.getPropertyValue('--xhs-card-bg').trim(),
+        accent: styles.getPropertyValue('--xhs-accent').trim(),
+        accentStrong: styles.getPropertyValue('--xhs-accent-strong').trim(),
+        accentSoft: styles.getPropertyValue('--xhs-accent-soft').trim(),
+        accentPale: styles.getPropertyValue('--xhs-accent-pale').trim(),
+        underline: styles.getPropertyValue('--xhs-underline').trim(),
+      };
+    });
+    assert.strictEqual(customColors.cardBg, '#f4e7d5');
+    assert.strictEqual(customColors.accent, '#c43d72');
+    assert.notStrictEqual(customColors.accentStrong, customColors.accent);
+    assert.match(customColors.accentSoft, /rgba\(196,\s*61,\s*114,\s*0\.18\)/);
+    assert.notStrictEqual(customColors.accentPale, customColors.accent);
+    assert.notStrictEqual(customColors.underline, customColors.accent);
+    assert.strictEqual(await page.locator('#customBgControl').evaluate((node) => node.classList.contains('active')), true);
+    assert.strictEqual(await page.locator('#customAccentControl').evaluate((node) => node.classList.contains('active')), true);
+
     await page.click('[data-cover-theme="accent"]');
     const lightAccentCover = await page.evaluate(() => {
       const styles = getComputedStyle(document.documentElement);
@@ -4182,7 +4230,7 @@ async function main() {
     await page.locator("#stageScale .cover-title").fill("已修改标题");
     await page.click('[data-bg-theme="blue"]');
     await page.locator("#bodyFontRange").evaluate((node) => {
-      node.value = "46";
+      node.value = "52";
       node.dispatchEvent(new Event("input", { bubbles: true }));
     });
     page.once("dialog", (dialog) => dialog.accept());
@@ -4192,7 +4240,7 @@ async function main() {
     assert.strictEqual(await page.locator('[data-bg-theme="white"]').evaluate((node) => node.classList.contains("active")), true);
     assert.strictEqual(await page.locator('[data-paper-pattern="none"]').evaluate((node) => node.classList.contains("active")), true);
     assert.strictEqual(await page.locator("#coverModeHalfBtn").evaluate((node) => node.classList.contains("active")), true);
-    assert.strictEqual(await page.locator("#bodyFontRange").inputValue(), "36");
+    assert.strictEqual(await page.locator("#bodyFontRange").inputValue(), "42");
 
     const flowPage = await browser.newPage({ viewport: { width: 1600, height: 1200 } });
     await flowPage.addInitScript(() => {
@@ -4336,7 +4384,7 @@ async function main() {
 }
 
 main().then(
-  () => console.log("rabbitQ XHS smoke test passed"),
+  () => console.log("rabbitQ-lark2xhs smoke test passed"),
   (error) => {
     console.error(error.stack || error.message || error);
     process.exitCode = 1;

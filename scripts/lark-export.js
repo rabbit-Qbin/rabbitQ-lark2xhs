@@ -2,7 +2,7 @@
 "use strict";
 
 /**
- * rabbitQ lark-export — 飞书云文档导出为标准 Markdown 包。
+ * rabbitQ-lark2xhs · lark-export — 飞书云文档导出为标准 Markdown 包。
  *
  * 用法：
  *   node scripts/lark-export.js <飞书URL> -o <输出目录> [--slug 文件名]
