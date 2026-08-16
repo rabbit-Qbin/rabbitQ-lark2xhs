@@ -263,7 +263,6 @@ function isCoverTitleHeading(text, coverTitle) {
 /** Rank heading depths in body. Least # → L1, second least → L2. Skips only cover-title duplicates. */
 function resolveHeadingRanks(body, title, options = {}) {
   const levels = new Set();
-  let hasDepth1 = false;
   for (const rawLine of String(body || "").replace(/\r\n/g, "\n").split("\n")) {
     const line = rawLine.trim();
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
@@ -271,18 +270,10 @@ function resolveHeadingRanks(body, title, options = {}) {
     const text = plainMarkdownText(heading[2]);
     if (isCoverTitleHeading(text, title)) continue;
     const depth = heading[1].length;
-    if (depth === 1) hasDepth1 = true;
     levels.add(depth);
   }
-  let ranks = [...levels].sort((a, b) => a - b);
-  let introDepth = null;
-  // Cover already fixed (frontmatter / CLI / 中文标签): a lone `#` echoing the doc name
-  // is intro, while `## 01 …` chapters stay the real level-1 sections.
-  if (options.coverTitleExplicit && hasDepth1 && ranks.includes(2)) {
-    introDepth = 1;
-    ranks = ranks.filter((depth) => depth !== 1);
-  }
-  return { level1: ranks[0] || null, level2: ranks[1] || null, introDepth };
+  const ranks = [...levels].sort((a, b) => a - b);
+  return { level1: ranks[0] || null, level2: ranks[1] || null, introDepth: null };
 }
 
 function isCoverTitleExplicit(markdown, cliTitle) {
@@ -582,13 +573,11 @@ function renderNativeXhsSourceHtml(markdownFile, markdown, title, options = {}) 
     if (!text) return;
     const strongStart = text.match(/^(?:\*\*|__)([\s\S]+?)(?:\*\*|__)([\s\S]*)$/);
     const strongContent = plainMarkdownText(strongStart?.[1] || "");
-    const fullStrongParagraph = Boolean(strongStart && !strongStart[2].trim());
     const labelCandidate = strongStart ? strongContent : plainMarkdownText(text);
     const explicitCardStart = CARD_LABEL_PREFIX.test(labelCandidate);
     const plainLength = plainMarkdownText(text).length;
-    const fullStrongCard = fullStrongParagraph && plainLength >= 18 && plainLength <= 75;
     const labeledCard = explicitCardStart && plainLength >= 10 && plainLength <= 75;
-    if (fullStrongCard || labeledCard) {
+    if (labeledCard) {
       const label = inferCardLabel(text);
       blocks.push(`<section data-xhs-block-type="callout" style="border-left:4px solid #57b560;background:#f4faf3;"><strong>${escapeHtml(label)}</strong><p>${inlineMarkdownToHtml(text, markdownFile)}</p></section>`);
       return;
@@ -673,13 +662,9 @@ function renderNativeXhsSourceHtml(markdownFile, markdown, title, options = {}) 
     if (splitMarkdownTableRow(line).length >= 2) return "table";
     const strongStart = line.match(/^(?:\*\*|__)([\s\S]+?)(?:\*\*|__)([\s\S]*)$/);
     const strongContent = plainMarkdownText(strongStart?.[1] || "");
-    const fullStrongParagraph = Boolean(strongStart && !strongStart[2].trim());
     const labelCandidate = strongStart ? strongContent : plainMarkdownText(line);
     const plainLength = plainMarkdownText(line).length;
-    if (
-      (fullStrongParagraph && plainLength >= 18 && plainLength <= 75) ||
-      (CARD_LABEL_PREFIX.test(labelCandidate) && plainLength >= 10 && plainLength <= 75)
-    ) return "callout";
+    if (CARD_LABEL_PREFIX.test(labelCandidate) && plainLength >= 10 && plainLength <= 75) return "callout";
     return "prose";
   }
   function shouldInsertMarkdownFlowBlank(upcoming) {
@@ -1070,6 +1055,8 @@ function studioHtmlV2(payload, libs) {
     .xhs-p span, .xhs-callout span, .xhs-quote span, .xhs-rich span, .xhs-list-line span, .xhs-table span { font-family: inherit !important; font-size: inherit !important; line-height: inherit !important; font-weight: inherit !important; letter-spacing: inherit !important; }
     .xhs-card code { font-family: inherit !important; font-size: inherit !important; font-weight: inherit; font-style: inherit; line-height: inherit !important; letter-spacing: inherit !important; color: inherit; background: none; }
     .xhs-heading { margin: 0 0 ${Math.round(width * 0.03) + 2}px; padding: 0 0 ${Math.round(width * 0.014)}px; border-bottom: 1px solid var(--xhs-underline-line, var(--xhs-underline)); display: grid; grid-template-columns: ${headingNumberSlotWidth}px minmax(0, 1fr); column-gap: ${headingNumberTitleGap}px; align-items: center; font-family: var(--xhs-font); overflow: hidden; break-inside: avoid; page-break-inside: avoid; }
+    .xhs-body-frame > :not(.xhs-page-start) + .xhs-heading[data-level="1"] { margin-top: var(--body-paragraph-gap); }
+    .xhs-body-frame > .xhs-page-start.xhs-heading[data-level="1"] { margin-top: 0; }
     .xhs-heading[contenteditable="false"] { outline: none; }
     .xhs-heading-number { width: 100%; min-width: 100%; display: flex; align-items: center; justify-content: center; color: var(--xhs-underline); font-size: ${headingNumberSize}px; line-height: 1; font-weight: 950; font-style: italic; white-space: nowrap; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
     .xhs-heading-space { display: none; }
@@ -2086,21 +2073,10 @@ function studioHtmlV2(payload, libs) {
       const first = cleanText(el.firstElementChild?.textContent || '');
       const style = el.getAttribute('style') || '';
       const candidate = first || text;
-      const firstElement = el.firstElementChild;
-      const fullStrongParagraph = Boolean(
-        firstElement &&
-        /^(?:STRONG|B)$/.test(firstElement.tagName) &&
-        cleanText(firstElement.textContent) === text &&
-        Array.from(el.childNodes).every((node) => (
-          node === firstElement ||
-          (node.nodeType === Node.TEXT_NODE && !cleanText(node.textContent))
-        ))
-      );
       const hasStructuredLabel = /^(${CARD_LABEL_TOKEN})$/.test(first);
       const hasPrefixedLabel = /^${CARD_LABEL_TOKEN}(?:\\s*[:：]\\s*|\\s*[—–-]\\s*|\\s+)/.test(candidate);
-      const fullStrongCard = fullStrongParagraph && text.length >= 18 && text.length <= 75;
       const labeledCard = text.length >= 10 && text.length <= 75 && (hasStructuredLabel || hasPrefixedLabel);
-      return fullStrongCard || labeledCard ||
+      return labeledCard ||
         /border-left\\s*:\\s*4px[^;]*#57b560/i.test(style);
     }
     function calloutFromElement(el) {
@@ -8450,7 +8426,7 @@ function studioHtmlV2(payload, libs) {
         .replace(/\\u2028/g, '\\u2028')
         .replace(/\\u2029/g, '\\u2029');
     }
-    function saveEditedHtml() {
+    function buildEditedHtml() {
       saveCurrentPage();
       const state = serializeStudioState();
       // The saved file is self-contained: embed the token registry so pasted
@@ -8460,11 +8436,20 @@ function studioHtmlV2(payload, libs) {
       const replacement = 'const embeddedState = /* XHS_EMBEDDED_STATE */ ' + jsonForInlineScript(state) + ';\\n    let pages = [];';
       html = html.replace(/const embeddedState = \\/\\* XHS_EMBEDDED_STATE \\*\\/ [\\s\\S]*?\\n    let pages = \\[\\];/, replacement);
       if (!html.includes('XHS_EMBEDDED_STATE')) {
-        alert('保存失败：没有找到可写入编辑状态的位置。');
-        return;
+        throw new Error('没有找到可写入编辑状态的位置。');
       }
-      const filename = config.title.replace(/[\\\\/:*?"<>|]/g, '') + '-xhs-studio-edited.html';
-      downloadBlob(new Blob([html], { type: 'text/html;charset=utf-8' }), filename);
+      return {
+        filename: config.title.replace(/[\\\\/:*?"<>|]/g, '') + '-xhs-studio-edited.html',
+        html,
+      };
+    }
+    function saveEditedHtml() {
+      try {
+        const saved = buildEditedHtml();
+        downloadBlob(new Blob([saved.html], { type: 'text/html;charset=utf-8' }), saved.filename);
+      } catch (error) {
+        alert('保存失败：' + (error?.message || '无法写入编辑状态。'));
+      }
     }
     function waitForImages(root) {
       const imgs = Array.from(root.querySelectorAll('img'));

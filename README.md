@@ -75,6 +75,25 @@ node scripts/convert.js "/path/to/article"
 
 封面形式通过 `--cover-mode full|half|none` 指定，默认是 `half`。`full` 是不可拆分编辑的完整封面图；`half` 的图片位于上半页，标题和副标题仍可编辑；`none` 不使用封面图。
 
+### 没有内置生图能力时：自配 API 生封面（可选）
+
+如果 Agent 没有可调用的生图工具，可配置 **OpenAI 兼容 Images API** 后使用本地脚本。密钥只从环境变量读取，不会写入 HTML、manifest 或 Git：
+
+```powershell
+$env:XHS_IMAGE_API_BASE = "https://api.openai.com/v1"
+$env:XHS_IMAGE_API_KEY = "你的密钥"
+$env:XHS_IMAGE_MODEL = "gpt-image-1"
+
+node scripts/generate-cover.js `
+  --prompt "干净的编辑感封面主视觉，主题是飞书文档转小红书图文，不要生成文字" `
+  --output "D:\output\cover.png" `
+  --size 1080x1440
+
+node scripts/convert.js "/path/to/article" --cover-mode full --cover-image "D:\output\cover.png"
+```
+
+半封面将 `--size` 改为 `1080x720`。可先加 `--dry-run` 检查请求配置；脚本不接收命令行 API Key，已有文件也不会覆盖，除非显式加 `--force`。
+
 封面字段也可以写进原稿：
 
 ```yaml

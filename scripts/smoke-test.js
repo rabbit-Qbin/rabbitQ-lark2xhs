@@ -180,9 +180,8 @@ async function main() {
   assert.strictEqual(explicitConvert.status, 0, explicitConvert.stderr || explicitConvert.stdout);
   const explicitHtml = fs.readFileSync(path.join(explicitOutputDir, "xhs-studio.html"), "utf8");
   assert.match(explicitHtml, /封面大标题（frontmatter）/);
-  assert.match(explicitHtml, /<section data-xhs-heading-level="1"[\s\S]*?<strong>章节<\/strong>/);
-  assert.doesNotMatch(explicitHtml, /<section data-xhs-heading-level="1"[\s\S]*?正文里的一级标题/);
-  assert.match(explicitHtml, /<section><strong>正文里的一级标题<\/strong><\/section>/);
+  assert.match(explicitHtml, /<section data-xhs-heading-level="1"[\s\S]*?<strong>正文里的一级标题<\/strong>/);
+  assert.match(explicitHtml, /<section data-xhs-heading-level="2"><strong>01 章节<\/strong><\/section>/);
   const explicitLevel1Blocks = [...explicitHtml.matchAll(/<section data-xhs-heading-level="1"[\s\S]*?<\/section>/g)].map((match) => match[0]);
   assert.ok(explicitLevel1Blocks.length >= 1);
   assert.ok(explicitLevel1Blocks.every((block) => !block.includes("封面大标题")));
@@ -211,8 +210,8 @@ async function main() {
   assert.match(chineseHtml, /"title":"中文标签大标题"/);
   assert.match(chineseHtml, /"subtitle":"中文标签副标题，写完就能批量出图"/);
   assert.doesNotMatch(chineseHtml, /标题：中文标签大标题/);
-  assert.match(chineseHtml, /<section data-xhs-heading-level="1"[\s\S]*?<strong>小节<\/strong>/);
-  assert.match(chineseHtml, /<section><strong>正文一级章节<\/strong><\/section>/);
+  assert.match(chineseHtml, /<section data-xhs-heading-level="1"[\s\S]*?<strong>正文一级章节<\/strong>/);
+  assert.match(chineseHtml, /<section data-xhs-heading-level="2"><strong>01 小节<\/strong><\/section>/);
 
   const boldListSourceDir = path.join(root, "bold-list-source");
   const boldListOutputDir = path.join(root, "bold-list-output");
@@ -391,7 +390,7 @@ async function main() {
   assert.match(html, /customAccentColor,/);
   assert.match(html, /<strong>结论<\/strong><p><strong>总结：这是总结卡片/, "总结 label should trigger a card with the inferred 结论 corner");
   assert.match(html, /<strong>注意<\/strong><p><strong>避坑：这是避坑卡片/, "避坑 label should trigger a card with the inferred 注意 corner");
-  assert.match(html, /<strong>划重点<\/strong><p><strong>这是一段没有标签但长度符合要求的完整加粗正文/, "18–75 character full-bold paragraphs should become cards");
+  assert.match(html, /<p><strong>这是一段没有标签但长度符合要求的完整加粗正文/, "unlabelled full-bold paragraphs must remain source-faithful bold text");
   assert.match(html, /<strong>注意<\/strong><p>注意：这条提醒刚好超过十字。/, "10–75 character paragraphs with an exact card label should become cards without requiring bold");
   assert.match(html, /<p><strong>时间价值<\/strong><\/p>/, "short full-bold paragraphs must stay plain bold paragraphs");
   assert.match(html, /<p><strong>提示词：<\/strong><\/p>/, "提示词 is not an exact card label and must stay plain bold text");
@@ -2471,7 +2470,7 @@ async function main() {
 
     assert.ok(content.quotes.some((text) => text.includes("仍然应该是引用")));
     assert.ok(content.callouts.some((text) => text.includes("这是明确的卡片")));
-    assert.ok(content.callouts.some((text) => text.includes("没有标签但长度符合要求")));
+    assert.ok(!content.callouts.some((text) => text.includes("没有标签但长度符合要求")), "unlabelled full-bold body text must not be promoted to a card at runtime");
     assert.ok(content.callouts.some((text) => text.includes("这条提醒刚好超过十字")));
     assert.ok(!content.callouts.some((text) => text.trim() === "提示词："), "提示词 must stay a plain paragraph after runtime normalization");
     assert.ok(!content.callouts.some((text) => /^\s*(?:金句|注意|结论|划重点)\s*[：:]/.test(text)));

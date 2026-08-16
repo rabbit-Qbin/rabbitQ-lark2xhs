@@ -6,6 +6,7 @@
   "type": "commonjs",
   "scripts": {
     "convert": "node scripts/convert.js",
+    "generate-cover": "node scripts/generate-cover.js",
     "ensure-font": "node scripts/ensure-font.js",
     "test": "node scripts/smoke-test.js"
   },
