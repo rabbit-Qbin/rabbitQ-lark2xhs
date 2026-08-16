@@ -1,6 +1,6 @@
 # rabbitQ-lark2xhs · Studio 使用手册
 
-`rabbitQ-lark2xhs` 把飞书 Markdown 与附件转换为一个本地 HTML 编辑器。这里说明转换结果如何编辑，不重复安装步骤。
+`rabbitQ-lark2xhs` 把飞书云文档链接、Markdown、图片附件目录或 ZIP 转换为一个本地可编辑的 3:4 图文 Studio。这里说明转换结果如何编辑，不重复安装步骤。
 
 ## 页面结构
 

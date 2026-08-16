@@ -3,7 +3,7 @@
 /**
  * rabbitQ-lark2xhs
  *
- * 小兔Q彬 · 飞书云文档 Markdown + 附件 → 可编辑小红书 3:4 图文 Studio
+ * 小兔Q彬 · 飞书云文档 / Markdown / 附件 → 可编辑小红书 3:4 图文 Studio
  *
  * Flow:
  *   Lark export package -> XHS source snapshot -> 3:4 paginated XHS Studio
