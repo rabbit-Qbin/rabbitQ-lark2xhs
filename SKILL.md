@@ -25,7 +25,7 @@ metadata:
 
 ## 触发条件
 
-- 用户调用 `/rabbitq-lark2xhs`、旧别名 `/rabbitQ-skill-lark-xhs`、`/rabbitq-xhs` 或 `/xhs-studio`。
+- 用户调用 `/rabbitq-lark2xhs`、`/rabbitq-xhs` 或 `/xhs-studio`。
 - 用户提供飞书云文档链接、Markdown、导出目录或 ZIP，要求生成小红书 3:4 图文、编辑 HTML 或 PNG 图组。
 - 用户要求重新运行、修复或验证由本 Skill 生成的 `xhs-studio.html`。
 
