@@ -13,7 +13,7 @@ metadata:
   output: "{slug}-xhs/xhs-studio.html"
 ---
 
-# rabbitQ-lark2xhs · 飞书 Markdown 转小红书图文
+# rabbitQ-lark2xhs · 飞书 / Markdown 转小红书图文
 
 将飞书云文档链接或本地 Markdown、附件目录与 ZIP，直接转换为可编辑的 `xhs-studio.html`；用户确认后可批量导出标准 3:4 PNG。
 

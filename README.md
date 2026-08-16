@@ -1,10 +1,10 @@
 # rabbitQ-lark2xhs
 
-**小兔Q彬 · 把飞书或 Markdown 变成可继续编辑的小红书 3:4 图文。**
+**小兔Q彬 · 把飞书云文档或 Markdown 变成可继续编辑的小红书 3:4 图文 Studio。**
 
 `rabbitQ-lark2xhs` 是一个面向 Codex / Agent 的本地 Skill，也可以直接作为 Node.js 工具使用。输入飞书云文档链接、Markdown、图片附件目录或导出 ZIP，得到一个本地可编辑的 `xhs-studio.html`。先在浏览器里调整文字、图片和分页；确认后再按需导出 1080 × 1440 PNG ZIP。
 
-![rabbitQ 飞书 Markdown 转小红书 3:4 图文工作流](assets/rabbitq-xhs-workflow.svg)
+![rabbitQ-lark2xhs 飞书云文档或 Markdown 转小红书 3:4 图文工作流](assets/rabbitq-xhs-workflow.svg)
 
 ## 它解决什么
 
