@@ -1,0 +1,8 @@
+interface:
+  display_name: "rabbitQ · 飞书转小红书图文"
+  short_description: "把飞书或 Markdown 转成可编辑的 3:4 小红书图文"
+  brand_color: "#4D7FD2"
+  default_prompt: "使用 $rabbitq-lark2xhs，把这份飞书文档或 Markdown 转成可编辑的小红书 3:4 图文 Studio。"
+
+policy:
+  allow_implicit_invocation: true

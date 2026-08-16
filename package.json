@@ -1,8 +1,8 @@
 {
-  "name": "rabbitQ-skill-lark-xhs",
-  "version": "0.9.25",
+  "name": "rabbitq-lark2xhs",
+  "version": "0.9.26",
   "private": true,
-  "description": "小兔Q彬 · 飞书 Markdown + 附件转可编辑小红书 3:4 图文 Studio",
+  "description": "rabbitQ-lark2xhs · 将飞书或 Markdown 转成可编辑的小红书 3:4 图文 Studio",
   "type": "commonjs",
   "scripts": {
     "convert": "node scripts/convert.js",

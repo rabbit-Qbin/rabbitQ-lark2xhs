@@ -1,8 +1,8 @@
-# rabbitQ-skill-lark-xhs
+# rabbitQ-lark2xhs
 
-**小兔Q彬 · 把飞书 Markdown 变成可继续编辑的小红书 3:4 图文。**
+**小兔Q彬 · 把飞书或 Markdown 变成可继续编辑的小红书 3:4 图文。**
 
-输入飞书云文档链接、Markdown、图片附件或导出 ZIP，得到一个本地可编辑的 `xhs-studio.html`。先在浏览器里调文字、图片和分页；确认后再按需导出 1080 × 1440 PNG ZIP。
+`rabbitQ-lark2xhs` 是一个面向 Codex / Agent 的本地 Skill，也可以直接作为 Node.js 工具使用。输入飞书云文档链接、Markdown、图片附件目录或导出 ZIP，得到一个本地可编辑的 `xhs-studio.html`。先在浏览器里调整文字、图片和分页；确认后再按需导出 1080 × 1440 PNG ZIP。
 
 ![rabbitQ 飞书 Markdown 转小红书 3:4 图文工作流](assets/rabbitq-xhs-workflow.svg)
 
@@ -26,15 +26,26 @@
 - **飞书可直达**：可直接给 `/wiki/` 或 `/docx/` 链接，脚本会通过 `lark-cli` 导出为标准 Markdown 包。
 - **AI 两遍整理**：先照实保留 Markdown 样式，再逐段逐句检查标题、卡片、引用、列表和行内强调是否匹配；只在合适时应用，不按数量硬塞样式。源 Markdown/HTML 已标记的代码块照实保留，实际 CLI 指令、脚本和配置代码也可转成代码块；命令行说明句和普通提示词不会误转。
 - **适合长文**：正文会连续分页；标题、图片和短表格保持完整，列表等内容可自然续到下一页。
-- **封面不绑死**：全封面、半封面、无封面可以切换，也支持嵌入你已有的封面图；无封面正文会跟在副标题下方 40px，并在编辑首页后锁定位置，切页不会跳动。两行副标题的左侧竖线会自动加长并居中。
+- **封面形式可选**：支持全封面、半封面、无封面，也支持嵌入已有封面图。全封面是一张完整成图，图中文字不能在 Studio 内单独编辑；半封面和无封面的标题、副标题可以直接编辑。无封面正文会跟在副标题下方 40px，并在编辑首页后锁定位置，切页不会跳动。
+- **书刊正文风格**：正文默认使用 Noto Serif SC 42px / 69px / 500 字重；卡片与引用正文为 40px，卡片默认加粗；代码块为 38px。缺少 Noto Serif SC 时可由脚本自动下载安装，无需管理员权限。
+- **颜色可以自己取**：除内置背景和强调色外，可直接选择自定义页面背景与强调母色。强调文字、色带、卡片浅底和下划线会自动生成协调的深浅层级，并保证强调文字可读。
 - **按最终版导出**：确认预览后再导 PNG ZIP，避免反复改图、重新排版。
+
+## 它不是什么
+
+- 它不是小红书自动发布器，不会登录账号或代替用户发布内容。
+- 它不是只能看不能改的成图模板；核心交付物是可继续编辑的本地 Studio。
+- 它不会把视频塞进图文；视频需要另行上传或先截帧。
 
 ## 快速开始
 
 ```bash
-git clone https://github.com/rabbit-Qbin/rabbitQ-skill-lark-xhs.git
-cd rabbitQ-skill-lark-xhs
+git clone https://github.com/rabbit-Qbin/rabbitQ-lark2xhs.git
+cd rabbitQ-lark2xhs
 npm ci
+
+# 检查并按需安装 Noto Serif SC
+node scripts/ensure-font.js
 
 # 从 Markdown、文章目录或 ZIP 生成 Studio
 node scripts/convert.js "/path/to/article"
@@ -43,6 +54,10 @@ node scripts/convert.js "/path/to/article"
 直接从飞书云文档开始：
 
 ```bash
+# 首次使用先安装并登录飞书 CLI
+npm install -g @larksuite/cli
+lark-cli auth login --scope "wiki:wiki:readonly docx:document:readonly"
+
 node scripts/lark-export.js "https://xxx.feishu.cn/wiki/文档token" -o "/path/to/article"
 node scripts/convert.js "/path/to/article"
 ```
@@ -58,6 +73,8 @@ node scripts/convert.js "/path/to/article"
 | 飞书导出的 ZIP | 直接把 ZIP 交给 `convert.js` |
 | 已做好封面 | 加 `--cover-mode full --cover-image "/path/to/cover.png"` |
 
+封面形式通过 `--cover-mode full|half|none` 指定，默认是 `half`。`full` 是不可拆分编辑的完整封面图；`half` 的图片位于上半页，标题和副标题仍可编辑；`none` 不使用封面图。
+
 封面字段也可以写进原稿：
 
 ```yaml
@@ -69,7 +86,11 @@ subtitle: 写完直接转，还能继续编辑
 
 ## 作为 Agent Skill 使用
 
-将仓库目录安装到 Agent 的 `skills` 目录，并保持名称为 `rabbitQ-skill-lark-xhs`。当用户给出飞书链接、Markdown、导出目录或 ZIP，并要求生成/修复/验证小红书图文时即可调用。
+将仓库目录安装到 Agent 的 `skills` 目录，并保持名称为 `rabbitq-lark2xhs`。当用户给出飞书链接、Markdown、导出目录或 ZIP，并要求生成、修复或验证小红书图文时即可调用。推荐提示词：
+
+```text
+使用 $rabbitq-lark2xhs，把这份飞书文档或 Markdown 转成可编辑的小红书 3:4 图文 Studio。
+```
 
 具体的输入约定、自动样式判断、封面决策、编辑规则与验收流程都在 [SKILL.md](SKILL.md) 中，避免 README 变成一份面向 Agent 的行为规范。
 
@@ -91,6 +112,8 @@ subtitle: 写完直接转，还能继续编辑
 npm test
 node --check scripts/convert.js
 ```
+
+当前发布版本：`0.9.26`。
 
 ## 作者
 
