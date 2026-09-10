@@ -20,7 +20,7 @@ const childProcess = require("child_process");
 const { pathToFileURL } = require("url");
 const cheerio = require("cheerio");
 
-const VERSION = "0.9.26";
+const VERSION = "0.9.27";
 const HEADING_LEVEL2_MARGIN_PX = 33;
 const HEADING_LEVEL2_PAGE_START_MARGIN_PX = 0;
 const DEFAULT_BG_THEME = "white";
@@ -260,15 +260,22 @@ function isCoverTitleHeading(text, coverTitle) {
   return normalizeCoverHeadingText(left) === normalizeCoverHeadingText(right);
 }
 
-/** Rank heading depths in body. Least # → L1, second least → L2. Skips only cover-title duplicates. */
+function isEditorialDividerMarkdownHeading(text) {
+  return /^(?:开头|切入|正文|结尾|图文|内容|占位标题)$/.test(String(text || "").trim());
+}
+
+/** Rank heading depths in body. Least # → L1, second least → L2. Skips cover duplicates and editorial dividers. */
 function resolveHeadingRanks(body, title, options = {}) {
   const levels = new Set();
-  for (const rawLine of String(body || "").replace(/\r\n/g, "\n").split("\n")) {
+  const lines = String(body || "").replace(/\r\n/g, "\n").split("\n");
+  for (let index = 0; index < lines.length; index += 1) {
+    const rawLine = lines[index];
     const line = rawLine.trim();
     const heading = line.match(/^(#{1,6})\s+(.+)$/);
     if (!heading) continue;
     const text = plainMarkdownText(heading[2]);
     if (isCoverTitleHeading(text, title)) continue;
+    if (isEditorialDividerMarkdownHeading(text)) continue;
     const depth = heading[1].length;
     levels.add(depth);
   }
@@ -786,6 +793,7 @@ function renderNativeXhsSourceHtml(markdownFile, markdown, title, options = {}) 
       const text = plainMarkdownText(heading[2].replace(/\s+#+$/, ""));
       // Only skip a heading that duplicates the resolved cover title — never blanket-skip all `#`.
       if (isCoverTitleHeading(text, title)) continue;
+      if (isEditorialDividerMarkdownHeading(text)) continue;
       if (headingRanks.introDepth != null && level === headingRanks.introDepth) {
         blocks.push(`<section><strong>${escapeHtml(text)}</strong></section>`);
         continue;
@@ -971,6 +979,7 @@ function studioHtmlV2(payload, libs) {
       --xhs-accent-pale: #f0f7ff;
       --xhs-underline: #aec4ec;
       --xhs-underline-line: rgba(174, 196, 236, .80);
+      --xhs-inline-underline-line: #111;
       --xhs-cover-bg: #ffffff;
       --xhs-cover-border: #aec4ec;
       --xhs-cover-placeholder: #8f948d;
@@ -1060,7 +1069,7 @@ function studioHtmlV2(payload, libs) {
     .xhs-heading[contenteditable="false"] { outline: none; }
     .xhs-heading-number { width: 100%; min-width: 100%; display: flex; align-items: center; justify-content: center; color: var(--xhs-underline); font-size: ${headingNumberSize}px; line-height: 1; font-weight: 950; font-style: italic; white-space: nowrap; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
     .xhs-heading-space { display: none; }
-    .xhs-heading-title { min-width: 0; margin-left: 0; color: #111; font-size: ${headingTitleSize}px; line-height: 1.16; font-weight: 900; word-break: normal; overflow-wrap: break-word; white-space: pre-wrap; }
+    .xhs-heading-title { min-width: 0; margin-left: 0; color: #111; font-size: ${headingTitleSize}px; line-height: calc(1.16em + 5px); font-weight: 900; word-break: normal; overflow-wrap: break-word; white-space: pre-wrap; }
     .xhs-heading[data-level="2"] { display: block; min-height: var(--body-line-px) !important; margin: 0 0 ${HEADING_LEVEL2_MARGIN_PX}px; padding: 0; border-bottom: 0; }
     .xhs-body-frame > .xhs-page-start.xhs-heading[data-level="2"] { margin-top: ${HEADING_LEVEL2_PAGE_START_MARGIN_PX}px; }
     .xhs-heading[data-level="2"] .xhs-heading-title { display: inline-flex; align-items: center; box-sizing: border-box; min-height: var(--body-line-px); flex: none; margin-left: 0; color: var(--xhs-accent-strong); font-size: var(--body-font); line-height: var(--body-line-px); font-weight: var(--body-bold-weight); background: none; padding: 0 1px; border-bottom: 2px solid var(--xhs-underline-line, var(--xhs-underline)); border-radius: 0; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
@@ -1119,7 +1128,8 @@ function studioHtmlV2(payload, libs) {
     .xhs-card .xhs-text-regular, .xhs-card .xhs-text-regular * { font-weight: var(--body-unbold-weight) !important; }
     .xhs-card .xhs-text-bold, .xhs-card .xhs-text-bold * { font-weight: var(--body-bold-weight) !important; }
     .xhs-green-text { color: var(--xhs-accent-strong); font-weight: inherit; }
-    .xhs-green-underline { font-weight: inherit; background: linear-gradient(to top, var(--xhs-accent-soft) 0 46%, transparent 46% 100%); padding:0 2px; border-bottom:1px solid var(--xhs-underline-line, var(--xhs-underline)); border-radius:2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+    .xhs-green-underline { font-weight: inherit; padding:0 2px; border-bottom:2px solid var(--xhs-inline-underline-line); border-radius:2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+    .xhs-half-highlight { font-weight: inherit; background: linear-gradient(to top, var(--xhs-accent-soft) 0 46%, transparent 46% 100%); padding:0 2px; border-radius:2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
     .xhs-split-head { margin-bottom: 0 !important; }
     .xhs-p.xhs-split-tail, .xhs-rich.xhs-split-tail, .xhs-callout.xhs-split-tail, .xhs-quote.xhs-split-tail, .xhs-code-block.xhs-split-tail, .xhs-list-line.xhs-split-tail { margin-top: 0 !important; }
     .xhs-callout.xhs-split-tail { padding-top: 0.72em; }
@@ -1165,6 +1175,7 @@ function studioHtmlV2(payload, libs) {
         <button id="italicBtn" title="引用" aria-label="引用">❝</button>
         <button id="greenTextBtn" title="有色字" aria-label="有色字">A</button>
         <button id="greenUnderlineBtn" title="下划线" aria-label="下划线"><u>U</u></button>
+        <button id="halfHighlightBtn" class="icon-button" title="半高亮" aria-label="半高亮"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m14 4 6 6-8.5 8.5H5.5v-6z"/><path d="m11 7 6 6"/><path d="M4 21h16"/></svg></button>
         <button id="keypointBtn" title="卡片" aria-label="卡片">▣</button>
         <button id="codeBtn" title="macOS 代码块" aria-label="代码块">&lt;/&gt;</button>
         <button id="listUnorderedBtn" class="icon-button" title="无序列表" aria-label="无序列表"><svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg></button>
@@ -1412,6 +1423,7 @@ function studioHtmlV2(payload, libs) {
     const headingBtn2 = document.getElementById('headingBtn2');
     const greenTextBtn = document.getElementById('greenTextBtn');
     const greenUnderlineBtn = document.getElementById('greenUnderlineBtn');
+    const halfHighlightBtn = document.getElementById('halfHighlightBtn');
     const keypointBtn = document.getElementById('keypointBtn');
     const codeBtn = document.getElementById('codeBtn');
     const listUnorderedBtn = document.getElementById('listUnorderedBtn');
@@ -3015,6 +3027,11 @@ function studioHtmlV2(payload, libs) {
       const combinedHeight = measureBlockMetrics(block, nextNode).outer + followingHeight;
       return combinedHeight <= limit && combinedHeight > remaining;
     }
+    function isMultilineLevelOneHeading(block) {
+      if (!block?.classList?.contains('xhs-heading') || detectHeadingLevel(block) !== '1') return false;
+      const title = block.querySelector('.xhs-heading-title');
+      return Boolean(title?.querySelector('br'));
+    }
     function htmlFromNodes(nodes) {
       const clones = nodes.map((node) => node.cloneNode?.(true) || node);
       clones.forEach((node) => node.classList?.remove('xhs-page-end', 'xhs-page-start'));
@@ -3273,7 +3290,10 @@ function studioHtmlV2(payload, libs) {
           let h = metrics.outer;
           let fitHeight = metrics.fit;
           let remaining = config.pageLimit - used;
-          if (current.length && headingShouldMoveWithNext(block, nextSourceBlock, remaining)) {
+          // A manually split H1 is intentionally allowed to end the page when
+          // it fits. Reserving the next body line makes one inserted <br>
+          // eject the title and a large amount of otherwise fitting prose.
+          if (current.length && !isMultilineLevelOneHeading(block) && headingShouldMoveWithNext(block, nextSourceBlock, remaining)) {
             pushPage();
             remaining = config.pageLimit;
           }
@@ -3984,14 +4004,15 @@ function studioHtmlV2(payload, libs) {
       const element = node?.nodeType === Node.ELEMENT_NODE ? node : node?.parentElement;
       const frame = element?.closest?.('.xhs-body-frame, .xhs-cover-tail-frame');
       if (!frame || !stageScale.contains(frame)) return '';
-      const textBlock = element?.closest?.('.xhs-p, .xhs-rich, .xhs-callout-body, .xhs-quote, .xhs-list-body');
+      const textBlock = element?.closest?.('.xhs-p, .xhs-rich, .xhs-callout-body, .xhs-quote, .xhs-list-body, .xhs-heading-title');
       if (textBlock) {
         const before = document.createRange();
         before.selectNodeContents(textBlock);
         try { before.setEnd(range.startContainer, range.startOffset); } catch (_) {}
         reflowCaretFallback = {
           tail: cleanText(before.toString()).slice(-24),
-          selector: textBlock.classList.contains('xhs-p') ? '.xhs-p' : '.xhs-rich, .xhs-callout-body, .xhs-quote, .xhs-list-body',
+          selector: textBlock.classList.contains('xhs-p') ? '.xhs-p' :
+            (textBlock.classList.contains('xhs-heading-title') ? '.xhs-heading-title' : '.xhs-rich, .xhs-callout-body, .xhs-quote, .xhs-list-body'),
         };
       } else {
         reflowCaretFallback = null;
@@ -5062,11 +5083,21 @@ function studioHtmlV2(payload, libs) {
         const hasBefore = Boolean(adjacentManualBlank(block, 'before')) ||
           Boolean(leading?.firstContent === block && leading.blanks.length);
         const hasAfter = Boolean(adjacentManualBlank(block, 'after'));
-        btnBefore.style.left = hasBefore ? 'calc(50% - 13px)' : '50%';
-        btnBeforeRemove.style.left = 'calc(50% + 13px)';
+        const isImage = block?.classList?.contains('xhs-image-block');
+        if (isImage) {
+          // Image resize handles occupy the center and bottom edge. Keep every
+          // add/remove affordance in one left-aligned column group instead.
+          btnBefore.style.left = '20px';
+          btnBeforeRemove.style.left = '46px';
+          btnAfter.style.left = '20px';
+          btnAfterRemove.style.left = '46px';
+        } else {
+          btnBefore.style.left = hasBefore ? 'calc(50% - 13px)' : '50%';
+          btnBeforeRemove.style.left = 'calc(50% + 13px)';
+          btnAfter.style.left = hasAfter ? 'calc(50% - 13px)' : '50%';
+          btnAfterRemove.style.left = 'calc(50% + 13px)';
+        }
         btnBeforeRemove.style.display = hasBefore ? 'block' : 'none';
-        btnAfter.style.left = hasAfter ? 'calc(50% - 13px)' : '50%';
-        btnAfterRemove.style.left = 'calc(50% + 13px)';
         btnAfterRemove.style.display = hasAfter ? 'block' : 'none';
       }
       function showHalo(block) {
@@ -5463,19 +5494,18 @@ function studioHtmlV2(payload, libs) {
       subtitle.style.flex = '0 0 auto';
     }
     function stabilizeExportInlineStyles(card, theme) {
-      // Match the on-screen CSS marker exactly:
-      //   background: linear-gradient(to top, accentSoft 0 46%, transparent 46% 100%)
-      //   border-bottom: 1px solid underline
-      // html2canvas renders that gradient as a full solid fill, so we strip the
-      // node's visual styles and repaint the identical band + baseline manually.
+      // html2canvas renders the half-highlight gradient as a full solid fill.
+      // Strip inline visual styles and repaint only the marks each node owns.
       const bandFill = theme.accentSoft || theme.soft || 'rgba(95,166,106,.18)';
-      const lineFill = theme.underlineLine || theme.underline || 'rgba(95,166,106,.5)';
+      const lineFill = '#111';
       normalizeUnderlineDecorations(card);
       const cardRect = card.getBoundingClientRect();
       const underlineRects = [];
-      card.querySelectorAll('.xhs-green-underline').forEach((node) => {
+      card.querySelectorAll('.xhs-green-underline, .xhs-half-highlight').forEach((node) => {
         // Inside callouts the marker is intentionally hidden (see CSS), skip it.
         const inCallout = !!node.closest('.xhs-callout');
+        const hasUnderline = node.classList.contains('xhs-green-underline');
+        const hasHighlight = node.classList.contains('xhs-half-highlight');
         const range = document.createRange();
         range.selectNodeContents(node);
         if (!inCallout) {
@@ -5483,20 +5513,24 @@ function studioHtmlV2(payload, libs) {
             if (rect.width < 2 || rect.height < 2) return;
             const bandHeight = Math.max(4, rect.height * 0.46);
             const lineHeightPx = Math.max(1.5, rect.height * 0.045);
-            underlineRects.push({
-              x: rect.left - cardRect.left,
-              y: rect.bottom - cardRect.top - bandHeight,
-              w: rect.width,
-              h: bandHeight,
-              color: bandFill,
-            });
-            underlineRects.push({
-              x: rect.left - cardRect.left,
-              y: rect.bottom - cardRect.top - lineHeightPx,
-              w: rect.width,
-              h: lineHeightPx,
-              color: lineFill,
-            });
+            if (hasHighlight) {
+              underlineRects.push({
+                x: rect.left - cardRect.left,
+                y: rect.bottom - cardRect.top - bandHeight,
+                w: rect.width,
+                h: bandHeight,
+                color: bandFill,
+              });
+            }
+            if (hasUnderline) {
+              underlineRects.push({
+                x: rect.left - cardRect.left,
+                y: rect.bottom - cardRect.top - lineHeightPx,
+                w: rect.width,
+                h: lineHeightPx,
+                color: lineFill,
+              });
+            }
           });
         }
         range.detach?.();
@@ -5697,6 +5731,7 @@ function studioHtmlV2(payload, libs) {
       setToolbarButtonState(document.getElementById('boldBtn'), inlineStyleState('', true));
       setToolbarButtonState(greenTextBtn, inlineStyleState('xhs-green-text'));
       setToolbarButtonState(greenUnderlineBtn, inlineStyleState('xhs-green-underline'));
+      setToolbarButtonState(halfHighlightBtn, inlineStyleState('xhs-half-highlight'));
       setToolbarButtonState(headingBtn1, info?.type === 'heading' && info.level === '1' ? 'on' : 'off');
       setToolbarButtonState(headingBtn2, info?.type === 'heading' && info.level === '2' ? 'on' : 'off');
       setToolbarButtonState(italicBtn, info?.type === 'quote' ? 'on' : 'off');
@@ -7198,6 +7233,14 @@ function studioHtmlV2(payload, libs) {
       }
       toggleInlineClass('xhs-green-underline', 'box-shadow');
     }
+    function applyHalfHighlight() {
+      const sel = window.getSelection();
+      if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+        const r = restrictRangeToInlineHost(sel.getRangeAt(0));
+        if (applyFormattingMultiBlock(r, 'xhs-half-highlight')) return;
+      }
+      toggleInlineClass('xhs-half-highlight', 'background');
+    }
     function blockNestHost(node) {
       return node?.closest?.('.xhs-callout-body, .xhs-quote, .xhs-list-body, .xhs-code-content');
     }
@@ -8692,7 +8735,7 @@ function studioHtmlV2(payload, libs) {
       if (event.target?.closest?.('.selectable-image, .xhs-resize-handle, .panel, .toolbar')) return;
       clearSelectedFrame();
     }, true);
-    [document.getElementById('boldBtn'), italicBtn, headingBtn1, headingBtn2, greenTextBtn, greenUnderlineBtn, keypointBtn, codeBtn, listUnorderedBtn, listOrderedBtn, insertImageBtn].forEach((button) => {
+    [document.getElementById('boldBtn'), italicBtn, headingBtn1, headingBtn2, greenTextBtn, greenUnderlineBtn, halfHighlightBtn, keypointBtn, codeBtn, listUnorderedBtn, listOrderedBtn, insertImageBtn].forEach((button) => {
       button?.addEventListener('mousedown', (event) => event.preventDefault());
       button?.addEventListener('click', () => recordEditorHistory(), true);
     });
@@ -8702,6 +8745,7 @@ function studioHtmlV2(payload, libs) {
     italicBtn.addEventListener('click', italicSelection);
     greenTextBtn.addEventListener('click', applyGreenText);
     greenUnderlineBtn.addEventListener('click', applyGreenUnderline);
+    halfHighlightBtn.addEventListener('click', applyHalfHighlight);
     keypointBtn.addEventListener('click', makeKeypointBlock);
     codeBtn?.addEventListener('click', makeCodeBlock);
     listUnorderedBtn?.addEventListener('click', () => makeListBlock('unordered'));

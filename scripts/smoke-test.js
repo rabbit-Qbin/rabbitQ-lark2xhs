@@ -117,10 +117,43 @@ async function main() {
     { encoding: "utf8" },
   );
   assert.strictEqual(convert.status, 0, convert.stderr || convert.stdout);
+  const terminalHeadingSource = path.join(root, "terminal-heading.md");
+  const terminalHeadingOutput = path.join(root, "terminal-heading-output");
+  fs.writeFileSync(terminalHeadingSource, [
+    "---",
+    "title: 标题层级回归",
+    "---",
+    "",
+    "# 开头",
+    "",
+    "导语不应改变章节层级。",
+    "",
+    "#### 01 真实章节",
+    "",
+    "这一节有正文内容。",
+    "",
+    "# 图文",
+    "",
+    "#### 02 第二章节",
+    "",
+    "第二节正文。",
+    "",
+    "# 结尾",
+  ].join("\n"), "utf8");
+  const terminalHeadingConvert = childProcess.spawnSync(
+    process.execPath,
+    [path.join(__dirname, "convert.js"), terminalHeadingSource, "-o", terminalHeadingOutput],
+    { encoding: "utf8" },
+  );
+  assert.strictEqual(terminalHeadingConvert.status, 0, terminalHeadingConvert.stderr || terminalHeadingConvert.stdout);
+  const terminalHeadingHtml = fs.readFileSync(path.join(terminalHeadingOutput, "xhs-studio.html"), "utf8");
+  assert.match(terminalHeadingHtml, /data-xhs-heading-level="1"[^>]*><span>01<\/span><strong>真实章节<\/strong>/, "editorial dividers must not demote the first real section heading to level two");
+  assert.match(terminalHeadingHtml, /data-xhs-heading-level="1"[^>]*><span>02<\/span><strong>第二章节<\/strong>/, "editorial dividers must not break subsequent level-one heading numbering");
+  assert.doesNotMatch(terminalHeadingHtml, />(?:开头|图文|结尾)<\/strong>/, "editorial dividers must not render as body headings");
   const coverHtml = fs.readFileSync(path.join(outputDir, "xhs-studio.html"), "utf8");
   assert.match(coverHtml, /"coverImageSrc":"data:image\/png;base64,/);
   assert.match(coverHtml, /"coverMode":"half"/);
-  assert.match(coverHtml, /"sourceFingerprint":"[^"]+:0\.9\.26:[a-f0-9]{16}"/);
+  assert.match(coverHtml, /"sourceFingerprint":"[^"]+:0\.9\.27:[a-f0-9]{16}"/);
   assert.match(coverHtml, /alt="封面图"/);
   assert.match(coverHtml, /id="coverModeFullBtn"/);
   assert.match(coverHtml, /id="coverModeHalfBtn"/);
@@ -341,9 +374,13 @@ async function main() {
 
   const htmlPath = path.join(outputDir, "xhs-studio.html");
   const html = fs.readFileSync(htmlPath, "utf8");
-  assert.match(html, /"version":"0\.9\.26"/);
+  assert.match(html, /"version":"0\.9\.27"/);
   assert.match(html, /<span class="xhs-green-text">高亮词<\/span>/, "==text== should map to accent-colored inline emphasis");
   assert.match(html, /<span class="xhs-green-underline">下划\+词<\/span>/, "++text++ should map to underline inline emphasis, allowing single + inside");
+  assert.match(html, /\.xhs-green-underline \{[^}]*border-bottom:2px solid var\(--xhs-inline-underline-line\);[^}]*\}/s, "underline must render as a black baseline");
+  assert.doesNotMatch(html, /\.xhs-green-underline \{[^}]*background:/s, "underline must not include the half-highlight band");
+  assert.match(html, /\.xhs-half-highlight \{[^}]*background: linear-gradient\(to top, var\(--xhs-accent-soft\) 0 46%, transparent 46% 100%\);/s, "half-highlight must use the accent band independently");
+  assert.match(html, /id="halfHighlightBtn"[^>]*title="半高亮"/, "toolbar must expose a dedicated half-highlight button");
   assert.match(html, /<code>\*\*粗\*\*<\/code>/, "code spans must protect literal ** markers");
   assert.match(html, /<code>==色==<\/code>/, "code spans must protect literal == markers");
   assert.match(html, /<code>\+\+划\+\+<\/code>/, "code spans must protect literal ++ markers");
@@ -400,6 +437,7 @@ async function main() {
   assert.match(html, /\.xhs-table thead th \{[^}]*font-weight: var\(--body-bold-weight\)/);
   assert.match(html, /\.xhs-heading\[data-level="2"\] \.xhs-heading-title \{[^}]*font-weight: var\(--body-bold-weight\)/);
   assert.match(html, /\.xhs-heading \{[^}]*grid-template-columns: 129px minmax\(0, 1fr\);[^}]*column-gap: 18px;/, 'level-one headings should reserve one consistent two-digit number slot');
+  assert.match(html, /\.xhs-heading-title \{[^}]*line-height: calc\(1\.16em \+ 5px\);/, 'multi-line level-one headings should add 5px of line spacing');
   assert.match(html, /\.xhs-heading-number \{[^}]*justify-content: center;[^}]*font-variant-numeric: tabular-nums;/);
   assert.match(html, /data-xhs-block-type="code" data-code-language="JavaScript"/);
   assert.match(html, /\.xhs-code-block \{[^}]*background: #17191f;/);
@@ -923,18 +961,21 @@ async function main() {
       selectPhrase(); document.getElementById("greenUnderlineBtn").click();
       const underline = Array.from(body.querySelectorAll(".xhs-green-underline")).find((node) => node.textContent === phrase);
       const underlineBorder = underline ? getComputedStyle(underline).borderBottomWidth : "";
+      const underlineColor = underline ? getComputedStyle(underline).borderBottomColor : "";
       const underlineText = Array.from(body.querySelectorAll(".xhs-green-underline")).find((node) => node.textContent === phrase)?.textContent || "";
       selectPhrase(underline?.firstChild || text); document.getElementById("greenTextBtn").click();
       return {
         phrase,
         underlineText,
         underlineBorder,
+        underlineColor,
         greenText: Array.from(body.querySelectorAll(".xhs-green-text")).find((node) => node.textContent === phrase)?.textContent || "",
       };
     });
     assert.strictEqual(cardInlineState.underlineText, cardInlineState.phrase, "card underline must apply only to the selected phrase");
     assert.strictEqual(cardInlineState.greenText, cardInlineState.phrase, "card green text must apply only to the selected phrase");
     assert.notStrictEqual(cardInlineState.underlineBorder, "0px", "card underline must remain visible");
+    assert.strictEqual(cardInlineState.underlineColor, "rgb(17, 17, 17)", "inline underline baseline must be black");
     await orderedPage.locator("#stageScale .xhs-callout-body").first().evaluate((body) => {
       body.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
       body.closest('[contenteditable="true"]')?.focus();
@@ -2524,6 +2565,14 @@ async function main() {
     assert.ok(handleStyle.width <= 18 && handleStyle.height <= 28, 'drag handle should stay compact and Feishu-like');
     assert.strictEqual(handleStyle.dotCount, 6, 'drag handle should contain six subtle dots');
     assert.ok(handleStyle.dotWidth <= 3, 'drag handle dots must stay visually light');
+    await sourceImageFrame.click();
+    await sourceImageFrame.hover();
+    const imageAfterAddBox = await page.locator('#blockHalo .halo-after.halo-add').boundingBox();
+    const imageBeforeAddBox = await page.locator('#blockHalo .halo-before.halo-add').boundingBox();
+    const imageBounds = await sourceImageFrame.boundingBox();
+    assert.ok(imageAfterAddBox && imageBeforeAddBox && imageBounds, 'selected image should expose both left-aligned add-blank controls');
+    assert.ok(imageAfterAddBox.x < imageBounds.x + imageBounds.width / 2, 'image bottom add-blank control must stay on the left side');
+    assert.ok(Math.abs(imageAfterAddBox.x - imageBeforeAddBox.x) <= 1, 'image top and bottom add-blank controls must align');
     const sourceBox = await sourceHandle.boundingBox();
     const targetBox = await targetOverviewCard.boundingBox();
     const targetParagraphBox = await targetParagraph.boundingBox();
@@ -3760,9 +3809,8 @@ async function main() {
     assert.strictEqual(await page.locator("#stageScale .xhs-quote").filter({ hasText: "互切样式测试" }).count(), 0);
     assert.strictEqual(await page.locator("#stageScale .xhs-p").filter({ hasText: "互切样式测试" }).count(), 1, "clicking the same style again should cancel back to paragraph");
 
-    // Regression: 有色字 and 下划线 are stackable inline styles. Applying one
-    // after the other must keep both (and keep the accent color), and toggling
-    // one off must leave the other intact without leftover empty spans.
+    // Regression: 有色字、下划线和半高亮 are independent stackable inline
+    // styles. Toggling one off must leave the other marks intact.
     await bodyFrame.evaluate((frame) => {
       const p = document.createElement("p");
       p.className = "xhs-p xhs-block";
@@ -3789,6 +3837,16 @@ async function main() {
     await page.waitForTimeout(120);
     assert.strictEqual(await stackedP.locator(".xhs-green-text").count(), 1, "green text must survive underline stacking");
     assert.strictEqual(await stackedP.locator(".xhs-green-underline").count(), 1, "underline should stack onto green text");
+    await stackedP.evaluate((p) => {
+      const range = document.createRange();
+      range.selectNodeContents(p);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      document.getElementById("halfHighlightBtn").click();
+    });
+    await page.waitForTimeout(120);
+    assert.strictEqual(await stackedP.locator(".xhs-half-highlight").count(), 1, "half-highlight should stack independently");
     const stackedColor = await stackedP.locator(".xhs-green-text").first().evaluate((node) => getComputedStyle(node).color);
     const accentColor = await page.evaluate(() => {
       const probe = document.createElement("span");
@@ -3810,6 +3868,7 @@ async function main() {
     await page.waitForTimeout(120);
     assert.strictEqual(await stackedP.locator(".xhs-green-underline").count(), 0, "clicking underline again must toggle it off");
     assert.strictEqual(await stackedP.locator(".xhs-green-text").count(), 1, "green text must stay after underline toggles off");
+    assert.strictEqual(await stackedP.locator(".xhs-half-highlight").count(), 1, "half-highlight must stay after underline toggles off");
     assert.strictEqual(await stackedP.locator('span:not([class]), span[class=""]').count(), 0, "toggle-off must not leave bare spans behind");
     await stackedP.evaluate((p) => {
       const range = document.createRange();

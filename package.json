@@ -1,6 +1,6 @@
 {
   "name": "rabbitq-lark2xhs",
-  "version": "0.9.26",
+  "version": "0.9.27",
   "private": true,
   "description": "rabbitQ-lark2xhs · 将飞书或 Markdown 转成可编辑的小红书 3:4 图文 Studio",
   "type": "commonjs",
