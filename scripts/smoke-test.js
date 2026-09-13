@@ -153,7 +153,7 @@ async function main() {
   const coverHtml = fs.readFileSync(path.join(outputDir, "xhs-studio.html"), "utf8");
   assert.match(coverHtml, /"coverImageSrc":"data:image\/png;base64,/);
   assert.match(coverHtml, /"coverMode":"half"/);
-  assert.match(coverHtml, /"sourceFingerprint":"[^"]+:0\.9\.27:[a-f0-9]{16}"/);
+  assert.match(coverHtml, /"sourceFingerprint":"[^"]+:0\.9\.28:[a-f0-9]{16}"/);
   assert.match(coverHtml, /alt="封面图"/);
   assert.match(coverHtml, /id="coverModeFullBtn"/);
   assert.match(coverHtml, /id="coverModeHalfBtn"/);
@@ -374,7 +374,7 @@ async function main() {
 
   const htmlPath = path.join(outputDir, "xhs-studio.html");
   const html = fs.readFileSync(htmlPath, "utf8");
-  assert.match(html, /"version":"0\.9\.27"/);
+  assert.match(html, /"version":"0\.9\.28"/);
   assert.match(html, /<span class="xhs-green-text">高亮词<\/span>/, "==text== should map to accent-colored inline emphasis");
   assert.match(html, /<span class="xhs-green-underline">下划\+词<\/span>/, "++text++ should map to underline inline emphasis, allowing single + inside");
   assert.match(html, /\.xhs-green-underline \{[^}]*border-bottom:2px solid var\(--xhs-inline-underline-line\);[^}]*\}/s, "underline must render as a black baseline");
@@ -4142,6 +4142,64 @@ async function main() {
     await imageFrame.dblclick();
     assert.strictEqual(await filechooserPromise, true, "double-clicking an image should open the local file chooser to replace it");
     await imageFrame.click();
+    const pastedImageReplacement = await page.evaluate(async () => {
+      const frame = document.querySelector("#stageScale .xhs-image-frame");
+      const image = frame?.querySelector("img");
+      const before = {
+        src: image?.src || "",
+        frameStyle: frame?.getAttribute("style") || "",
+        fit: frame?.dataset.fit || "",
+        objectFit: image?.style.objectFit || "",
+        objectPosition: image?.style.objectPosition || "",
+        transform: image?.style.transform || "",
+      };
+      const canvas = document.createElement("canvas");
+      canvas.width = 48;
+      canvas.height = 120;
+      canvas.getContext("2d").fillRect(0, 0, 48, 120);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      const transfer = new DataTransfer();
+      transfer.items.add(new File([blob], "replacement.png", { type: "image/png" }));
+      frame.dispatchEvent(new ClipboardEvent("paste", {
+        clipboardData: transfer,
+        bubbles: true,
+        cancelable: true,
+      }));
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      const afterFrame = document.querySelector("#stageScale .xhs-image-frame");
+      const afterImage = afterFrame?.querySelector("img");
+      return {
+        before,
+        after: {
+          src: afterImage?.src || "",
+          frameStyle: afterFrame?.getAttribute("style") || "",
+          fit: afterFrame?.dataset.fit || "",
+          objectFit: afterImage?.style.objectFit || "",
+          objectPosition: afterImage?.style.objectPosition || "",
+          transform: afterImage?.style.transform || "",
+        },
+        selectedCount: document.querySelectorAll("#stageScale .selected-image-frame").length,
+      };
+    });
+    assert.notStrictEqual(pastedImageReplacement.after.src, pastedImageReplacement.before.src, "pasting one image onto a selected frame should replace its source");
+    assert.deepStrictEqual(
+      {
+        frameStyle: pastedImageReplacement.after.frameStyle,
+        fit: pastedImageReplacement.after.fit,
+        objectFit: pastedImageReplacement.after.objectFit,
+        objectPosition: pastedImageReplacement.after.objectPosition,
+        transform: pastedImageReplacement.after.transform,
+      },
+      {
+        frameStyle: pastedImageReplacement.before.frameStyle,
+        fit: pastedImageReplacement.before.fit,
+        objectFit: pastedImageReplacement.before.objectFit,
+        objectPosition: pastedImageReplacement.before.objectPosition,
+        transform: pastedImageReplacement.before.transform,
+      },
+      "clipboard replacement should preserve the frame and crop settings",
+    );
+    assert.strictEqual(pastedImageReplacement.selectedCount, 1, "clipboard replacement should keep the image selected");
     await page.keyboard.press("Backspace");
     await page.waitForTimeout(300);
     assert.strictEqual(await page.locator("#stageScale .xhs-image-frame").count(), 0, "Backspace should delete the selected image block");

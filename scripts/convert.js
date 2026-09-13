@@ -20,7 +20,7 @@ const childProcess = require("child_process");
 const { pathToFileURL } = require("url");
 const cheerio = require("cheerio");
 
-const VERSION = "0.9.27";
+const VERSION = "0.9.28";
 const HEADING_LEVEL2_MARGIN_PX = 33;
 const HEADING_LEVEL2_PAGE_START_MARGIN_PX = 0;
 const DEFAULT_BG_THEME = "white";
@@ -3853,6 +3853,41 @@ function studioHtmlV2(payload, libs) {
     function readImageFileAsOptimizedDataUrl(file) {
       return readFileAsDataUrl(file).then((src) => (src ? downscaleImageDataUrl(src) : ''));
     }
+    function clipboardImageFiles(event) {
+      return Array.from(event.clipboardData?.files || []).filter((file) =>
+        String(file.type || '').toLowerCase().startsWith('image/'));
+    }
+    function replaceSelectedImageFromSrc(nextSrc) {
+      const frame = selectedFrame;
+      if (!frame?.isConnected || !nextSrc) return false;
+      let img = frame.querySelector('img');
+      if (!img) {
+        img = document.createElement('img');
+        img.draggable = false;
+        img.style.objectFit = frame.dataset.fit || 'cover';
+        img.style.objectPosition = '50% 50%';
+        img.dataset.offsetX = '0';
+        img.dataset.offsetY = '0';
+        img.style.transform = 'translate(0px, 0px) scale(1)';
+        frame.innerHTML = '';
+        frame.appendChild(img);
+      }
+      // Keep the selected frame and the existing crop transform untouched.
+      img.src = nextSrc;
+      const dims = imageDimensionsFromSrc(nextSrc);
+      if (dims) {
+        frame.dataset.naturalWidth = String(dims.width);
+        frame.dataset.naturalHeight = String(dims.height);
+      }
+      const imageId = ensureImageId(frame.closest('.xhs-image-block'));
+      saveCurrentPage();
+      if (imageId) reflow(imageId);
+      else {
+        syncImageTools();
+        renderImageList();
+      }
+      return true;
+    }
     function insertNodesAtSelection(nodes, editable) {
       const selection = window.getSelection();
       let range = null;
@@ -3885,11 +3920,16 @@ function studioHtmlV2(payload, libs) {
       selection.addRange(range);
     }
     async function handleImagePaste(event, editable) {
-      const files = Array.from(event.clipboardData?.files || []).filter((file) => String(file.type || '').toLowerCase().startsWith('image/'));
+      const files = clipboardImageFiles(event);
       if (files.length) {
         event.preventDefault();
         const srcs = (await Promise.all(files.map(readImageFileAsOptimizedDataUrl))).filter(Boolean);
         if (!srcs.length) return;
+        if (selectedFrame && srcs.length === 1) {
+          recordEditorHistory();
+          replaceSelectedImageFromSrc(srcs[0]);
+          return;
+        }
         const blocks = srcs.map((src) => imageBlockFromSrc(src, '', { pasted: true }));
         const nodes = blocks.length > 1 ? [imageGridFromBlocks(blocks)] : blocks;
         const preferredImageId = ensureImageId(blocks[0]);
@@ -3912,6 +3952,18 @@ function studioHtmlV2(payload, libs) {
         }
       }, 30);
     }
+    document.addEventListener('paste', (event) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest('[contenteditable="true"]')) return;
+      const files = clipboardImageFiles(event);
+      if (!selectedFrame || files.length !== 1) return;
+      event.preventDefault();
+      readImageFileAsOptimizedDataUrl(files[0]).then((nextSrc) => {
+        if (!nextSrc) return;
+        recordEditorHistory();
+        replaceSelectedImageFromSrc(nextSrc);
+      });
+    }, true);
     function saveCurrentPage(options = {}) {
       const skipNormalize = Boolean(options.skipNormalize);
       const skipPersist = Boolean(options.skipPersist);
